@@ -1002,7 +1002,7 @@ function updateSummaryTable(store, month) {
         const tr = document.createElement('tr');
         tr.innerHTML = `
             <td style="padding:6px;">${metric}</td>
-            <td style="text-align:right; padding:6px; font-weight:500;">${value}</td>
+            <td style="text-align:center; padding:6px; font-weight:500;">${value}</td>
             <td style="padding:6px; color:#666; font-style:italic;">${source}</td>
         `;
         tbody.appendChild(tr);
