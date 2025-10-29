@@ -1001,9 +1001,9 @@ function updateSummaryTable(store, month) {
     rows.forEach(([metric, value, source]) => {
         const tr = document.createElement('tr');
         tr.innerHTML = `
-            <td style="padding:6px;">${metric}</td>
+            <td style="padding:3px;">${metric}</td>
             <td style="text-align:center; padding:6px; font-weight:500;">${value}</td>
-            <td style="padding:6px; color:#666; font-style:italic;">${source}</td>
+            <td style="padding:3px; color:#666; font-size: small; font-style:italic;">${source}</td>
         `;
         tbody.appendChild(tr);
     });
