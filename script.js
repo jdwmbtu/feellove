@@ -143,17 +143,20 @@ function updateGrowthTarget() {
     const valSel = document.getElementById('growth-target');
     if (!valSel) return;
 
-    const value = valSel.value;
-    if (value.includes('K')) {
+    const selected = valSel.options[valSel.selectedIndex];
+    const value = selected.value;
+    const text = selected.textContent.trim();
+
+    if (text.includes('$') || text.includes('K')) {
         growthType = 'dollar';
         growthTarget = parseFloat(value.replace('K', ''));
     } else {
         growthType = 'percent';
         growthTarget = parseFloat(value);
     }
-    console.log(`Growth target: ${growthTarget} (${growthType})`);
-}
 
+    console.log(`Growth target: ${growthTarget} ${growthType === 'dollar' ? '($K)' : '(%)'} — selected: "${text}"`);
+}
 /* -------------------------------------------------------------
    UPDATE FORECAST BUTTON
    ------------------------------------------------------------- */
