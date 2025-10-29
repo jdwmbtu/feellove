@@ -960,7 +960,7 @@ function updateSummaryTable(store, month) {
         [
             "Remaining to Target ($)",
             remaining$ <= 0 
-                ? `<span style="color: green;">✓</span>` 
+                ? `<span style="color: green; font-weight: bold;">✓ Target Met</span>` 
                 : `<span>
                        ${formatNumber(remaining$)}
                    </span>`,
@@ -969,7 +969,7 @@ function updateSummaryTable(store, month) {
         [
             "Growth Needed for ROM (%)",
             remaining$ <= 0 
-                ? `<span style="color: green; font-weight: bold;">✓</span>` 
+                ? `<span style="color: green; font-weight: bold;">✓ Target Met</span>` 
                 : `<span style="color: ${growthNeededPct >= 0 ? 'green' : 'red'};">
                        ${formatPercent(growthNeededPct)}
                    </span>`,
