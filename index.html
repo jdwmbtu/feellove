@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Store Dashboard</title>
+    <script src="https://apis.google.com/js/api.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; background: #f8f9fa; }
+        h1 { margin: 20px 0; color: #2c3e50; }
+        h2, h3 { color: #34495e; }
+
+        /* Base table style */
+        .data-table {
+            margin: 10px auto;
+            border-collapse: collapse;
+            width: 100%;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            border-radius: 8px;
+            overflow: hidden;
+            background: white;
+        }
+        .data-table th, .data-table td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: center;
+        }
+        .data-table th {
+            background: #e0e0e0;
+            font-weight: bold;
+        }
+        .data-table tr:nth-child(even) { background-color: #f9f9f9; }
+        .data-table tr:hover { background-color: #fffacd !important; }
+
+        .negative { color: red; }
+
+        /* Controls */
+        .controls { margin: 10px 0; }
+        .toggle-btn {
+            margin: 10px;
+            padding: 6px 12px;
+            cursor: pointer;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+        .toggle-btn:hover { background-color: #2980b9; }
+
+        /* Layout containers */
+        .top-row, .middle-row {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin: 20px 0;
+        }
+        .left-panel, .right-panel {
+            flex: 1;
+            min-width: 300px;
+        }
+        .left-panel { max-width: 400px; }
+        .right-panel { min-width: 500px; }
+
+        /* Scrollable tables */
+        .scrollable {
+            max-height: 320px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+        }
+
+        /* Metrics table - enhanced */
+        #metrics-table th {
+            background: #d0d0d0 !important;
+            font-size: 1.1em;
+            border-bottom: 2px solid #777;
+        }
+        #metrics-table th[colspan] {
+            background: #c0c0c0 !important;
+        }
+        #metrics-table td:nth-child(2), #metrics-table td:nth-child(6), #metrics-table td:nth-child(10) {
+            background-color: #f0f8ff;
+        }
+        #metrics-table td:nth-child(3), #metrics-table td:nth-child(7), #metrics-table td:nth-child(11) {
+            background-color: #f0fff0;
+        }
+        #metrics-table td:nth-child(4), #metrics-table td:nth-child(8), #metrics-table td:nth-child(12) {
+            background-color: #fffbe6;
+        }
+        #metrics-table td:nth-child(5), #metrics-table td:nth-child(9), #metrics-table td:nth-child(13) {
+            background-color: #fff5e6;
+            font-weight: 500;
+        }
+        #metrics-table td:nth-child(5), #metrics-table td:nth-child(9) {
+            border-right: 2px solid #999;
+        }
+
+        /* Summary table */
+        #summary-table th {
+            background: #e0e0e0 !important;
+            font-weight: bold;
+            text-align: left;
+            padding: 10px 12px;
+        }
+        #summary-table td {
+            padding: 8px 12px;
+        }
+
+    
+
+
+
+        /* Status */
+        #status-cell {
+            font-weight: bold;
+            color: #0066cc;
+            padding: 8px 0;
+        }
+    </style>
+</head>
+<body>
+
+<h1>Store Sales Dashboard</h1>
+
+<!-- TOP ROW: Controls + Summary -->
+<div class="top-row">
+    
+    <!-- LEFT: Controls -->
+    <div class="left-panel">
+        <table class="data-table" style="font-size: 0.9em;">
+            <tr>
+                <td><label for="month-filter">Month:</label></td>
+                <td><select id="month-filter" onchange="updateTables()"></select></td>
+            </tr>
+            <tr>
+                <td><label for="store-filter">Store:</label></td>
+                <td>
+                    <select id="store-filter" onchange="updateTables()">
+                        <option value="CAFE">CAFE</option>
+                        <option value="FEELLOVE">FEELLOVE</option>
+                        <option value="SNOW">SNOW</option>
+                        <option value="ZION">ZION</option>
+                    </select>
+                </td>
+            </tr>
+            <tr>
+    <td><label for="growth-target">Growth Target:</label></td>
+    <td>
+        <select id="growth-target" onchange="updateGrowthTarget()">
+            <optgroup label="Percent">
+                <option value="10">+10%</option>
+                <option value="20">+20%</option>
+                <option value="25">+25%</option>
+                <option value="30">+30%</option>
+            </optgroup>
+            <optgroup label="Dollar ($K)">
+                <option value="5">+$5K</option>
+                <option value="10">+$10K</option>
+                <option value="15">+$15K</option>
+                <option value="20">+$20K</option>
+                <option value="25">+$25K</option>
+            </optgroup>
+        </select>
+    </td>
+</tr>
+            <tr>
+                <td><label>Adjusted:</label></td>
+                <td><label><input type="checkbox" id="adjusted-toggle" onchange="updateTables()"> Yes</label></td>
+            </tr>
+            <tr>
+                <td colspan="2" style="text-align:center; padding:10px 0;">
+                    <button class="toggle-btn" onclick="refreshAndUpdateForecast()">Update Forecast</button>
+                </td>
+            </tr>
+            <tr>
+                <td colspan="2" id="status-cell">Loading…</td>
+            </tr>
+        </table>
+    </div>
+
+    <!-- RIGHT: Summary -->
+    <div class="right-panel">
+          <table id="summary-table" class="data-table" style="font-size: 0.9em; width:100%;">
+    <thead>
+        <tr>
+            <th style="width: 25%;">Metric</th>
+            <th style="width: 25%;">Value</th>
+            <th style="width: 50%;">Source</th>
+        </tr>
+    </thead>
+    <tbody></tbody>
+</table>
+        </div>
+</div>
+
+<!-- MIDDLE ROW: Simple Forecast + Daily Metrics -->
+<!-- LEFT: Simple Forecast + RIGHT: Scenarios -->
+<div class="middle-row">
+    
+    <!-- LEFT: Simple Forecast -->
+    <div class="left-panel">
+        <h2 style="margin:0 0 10px 0;">Simple Forecast</h2>
+        <table id="forecast-table" class="data-table" style="font-size: 0.9em;">
+            <thead>
+                <tr>
+                    <th>Category</th>
+                    <th>MTD</th>
+                    <th>ROM</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+        <p id="forecast-count" style="margin:5px 0; font-size:0.8em;"></p>
+    </div>
+
+    <!-- RIGHT: Scenarios -->
+    <div class="right-panel">
+        <h2 style="margin:0 0 10px 0;">Scenarios</h2>
+        <table id="scenarios-table" class="data-table" style="font-size: 0.9em;">
+            <thead>
+                <tr>
+                    <th>MTD</th>
+                    <th>Scenario</th>
+                    <th>ROM</th>
+                    <th>Total</th>
+                    <th>vs Target</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+</div>
+
+<!-- MIDDLE: Daily Metrics -->
+<h2>Daily Metrics</h2>
+    <table id="metrics-table" class="data-table">
+        <thead>
+            <tr>
+                <th rowspan="2">Day</th>
+                <th colspan="4">Sales</th>
+                <th colspan="4">Orders</th>
+                <th colspan="4">AOV</th>
+            </tr>
+            <tr>
+                <th>2024</th>
+                <th>2025</th>
+                <th>$</th>
+                <th>%</th>
+                <th>2024</th>
+                <th>2025</th>
+                <th>#</th>
+                <th>%</th>
+                <th>2024</th>
+                <th>2025</th>
+                <th>$</th>
+                <th>%</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+<p id="metrics-count" style="margin:5px 0; font-size:0.8em;"></p>
+
+<!-- BOTTOM: Day Count -->
+<h2>Day Counts by Month</h2>
+<table id="daycount-table" class="data-table">
+    <thead>
+        <tr>
+            <th>Category</th>
+            <th>2024 Count</th>
+            <th>2025 Elapsed</th>
+            <th>2025 Remaining</th>
+        </tr>
+    </thead>
+    <tbody></tbody>
+</table>
+<p id="daycount-count"></p>
+
+<script src="script.js"></script>
+</body>
+</html>
