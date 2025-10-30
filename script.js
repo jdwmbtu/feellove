@@ -233,8 +233,8 @@ function calculateAverages(store, month) {
     return { salesAverages2024: s24, salesAverages2025: s25, ordersAverages2024: o24, ordersAverages2025: o25 };
 }
 
-/* -------------------------------------------------------------
-   7-DAY PREDICTION TABLE – HORIZONTAL
+//* -------------------------------------------------------------
+   7-DAY PREDICTION TABLE – HORIZONTAL (NEXT 7 DAYS, ANY MONTH)
    ------------------------------------------------------------- */
 function updateSevenDayPredictionTable(store, month) {
     const container = document.getElementById('seven-day-prediction-container');
@@ -244,18 +244,16 @@ function updateSevenDayPredictionTable(store, month) {
     tbody.innerHTML = '';
 
     const lastDataDate = getLastDataDate(store, month);
-    const monthIndex = ['January','February','March','April','May','June','July','August','September','October','November','December'].indexOf(month);
 
     // Start from next day
-    const startDate = lastDataDate ? new Date(lastDataDate) : new Date(2025, monthIndex, 1);
+    const startDate = lastDataDate ? new Date(lastDataDate) : new Date();
     startDate.setDate(startDate.getDate() + 1);
 
-    // Build 7 days (stop at month end)
+    // Build 7 days
     const days = [];
     for (let i = 0; i < 7; i++) {
         const d = new Date(startDate);
         d.setDate(d.getDate() + i);
-        if (d.getMonth() !== monthIndex) break;
         days.push(d);
     }
 
@@ -264,7 +262,8 @@ function updateSevenDayPredictionTable(store, month) {
     days.forEach(d => {
         const dayName = d.toLocaleString('en-US', { weekday: 'short' });
         const dayNum = d.getDate();
-        headerHTML += `<th style="text-align:center;">${dayName}<br>${dayNum}</th>`;
+        const monthName = d.toLocaleString('en-US', { month: 'short' });
+        headerHTML += `<th style="text-align:center;">${dayName}<br>${monthName} ${dayNum}</th>`;
     });
     headerHTML += '</tr>';
     tbody.innerHTML += headerHTML;
