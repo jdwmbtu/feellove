@@ -982,7 +982,7 @@ function updateSummaryTable(store, month) {
             nextDayTarget.source
         ],
         [
-            "Expected Customers (Next Day)",
+            "Expected Orders",
             `<span>
                 ${Math.round(nextDayTarget.customers)}
             </span>`,
