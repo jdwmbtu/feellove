@@ -233,7 +233,7 @@ function calculateAverages(store, month) {
     return { salesAverages2024: s24, salesAverages2025: s25, ordersAverages2024: o24, ordersAverages2025: o25 };
 }
 
-//* -------------------------------------------------------------
+/* -------------------------------------------------------------
    7-DAY PREDICTION TABLE – HORIZONTAL (NEXT 7 DAYS, ANY MONTH)
    ------------------------------------------------------------- */
 function updateSevenDayPredictionTable(store, month) {
