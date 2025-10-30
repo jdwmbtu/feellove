@@ -461,8 +461,6 @@ function updateCombinedMetricsTable(store, month) {
     const monthlySales24 = data.mtd2024;
     const monthlySales25 = data.mtd2025;
 
-    // Sum actual orders for MTD
-    let monthlyOrders24 = 0, monthlyOrders25 = 0;
     netsalesData.forEach(row => {
         const d = new Date(row[2]);
         if (isNaN(d) || d.toLocaleString('en-US', { month: 'long' }) !== month) return;
@@ -470,9 +468,9 @@ function updateCombinedMetricsTable(store, month) {
         const orderRow = ordersData.find(o => new Date(o[2]).getTime() === d.getTime());
         const orders = orderRow ? parseFloat(orderRow[storeColumns[store]]) || 0 : 0;
 
-        if (d.getFullYear() === 2024 && d.getDate() <= data.elapsedDays) {
+        if (d.getFullYear() === 2024) {
             monthlyOrders24 += orders;
-        } else if (d.getFullYear() === 2025 && d.getDate() <= data.elapsedDays) {
+        } else if (d.getFullYear() === 2025) {
             monthlyOrders25 += orders;
         }
     });
