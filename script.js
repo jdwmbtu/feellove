@@ -891,8 +891,8 @@ function getNextDayTargetedNetSales(store, month, remaining$, netsalesData, next
 
     // Source string
     const sharePct = (share * 100).toFixed(1);
-    const source = `MAX(Target ${formatNumber(remaining$)}<sub>ROM</sub> × ${sharePct}% <sub>Single ${nextWeekday} share</sub>
-, ${formatNumber(nextDayAvg)}<sub>${nextWeekday} avg</sub> )`;
+    const source = `MAX of Target ${formatNumber(remaining$)}<sub>ROM</sub> × ${sharePct}% <sub>Single ${nextWeekday} share</sub>
+OR ${formatNumber(nextDayAvg)}<sub>${nextWeekday} avg</sub> )`;
 
         // === Expected Customers – average from most recent 3 same days ===
      // === Expected Customers – average from most recent 3 same days ===
