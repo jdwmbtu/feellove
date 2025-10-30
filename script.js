@@ -392,7 +392,6 @@ function updateForecastTable(store, month) {
         tbody.appendChild(row);
     });
 }
-${growthType === 'percent' ? `${growthTarget}%` : `$${growthTarget.toLocaleString()}K`
 /* -------------------------------------------------------------
    SCENARIOS TABLE
    ------------------------------------------------------------- */
