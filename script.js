@@ -234,7 +234,7 @@ function calculateAverages(store, month) {
 }
 
 /* -------------------------------------------------------------
-   7-DAY PREDICTION TABLE
+   7-DAY PREDICTION TABLE – HORIZONTAL
    ------------------------------------------------------------- */
 function updateSevenDayPredictionTable(store, month) {
     const container = document.getElementById('seven-day-prediction-container');
@@ -245,43 +245,48 @@ function updateSevenDayPredictionTable(store, month) {
 
     const lastDataDate = getLastDataDate(store, month);
     const monthIndex = ['January','February','March','April','May','June','July','August','September','October','November','December'].indexOf(month);
-    const totalDays = new Date(2025, monthIndex + 1, 0).getDate();
 
     // Start from next day
     const startDate = lastDataDate ? new Date(lastDataDate) : new Date(2025, monthIndex, 1);
     startDate.setDate(startDate.getDate() + 1);
 
-    const row = document.createElement('tr');
-
-    for (let i = 0; i < 7; i++) {
-        const current = new Date(startDate);
-        current.setDate(current.getDate() + i);
-
-        if (current.getMonth() !== monthIndex && current.getFullYear() === 2025) break; // stop at month end
-
-        const dayName = current.toLocaleString('en-US', { weekday: 'short' });
-        const dayNum = current.getDate();
-
-        row.innerHTML += `
-            <td style="text-align:center; font-weight:bold;">
-                ${dayName}<br>${dayNum}
-            </td>
-            <td id="pred-sales-${i}" style="text-align:right;">—</td>
-            <td id="pred-orders-${i}" style="text-align:right;">—</td>
-        `;
-    }
-
-    tbody.appendChild(row);
-
-    // Store dates for prediction algo
-    window.predictionDates = [];
+    // Build 7 days (stop at month end)
+    const days = [];
     for (let i = 0; i < 7; i++) {
         const d = new Date(startDate);
         d.setDate(d.getDate() + i);
-        if (d.getMonth() === monthIndex) {
-            window.predictionDates.push(d);
-        }
+        if (d.getMonth() !== monthIndex) break;
+        days.push(d);
     }
+
+    // Header row
+    let headerHTML = '<tr><th></th>';
+    days.forEach(d => {
+        const dayName = d.toLocaleString('en-US', { weekday: 'short' });
+        const dayNum = d.getDate();
+        headerHTML += `<th style="text-align:center;">${dayName}<br>${dayNum}</th>`;
+    });
+    headerHTML += '</tr>';
+    tbody.innerHTML += headerHTML;
+
+    // Sales row
+    let salesRow = '<tr><td style="font-weight:bold; text-align:right;">Net Sales</td>';
+    days.forEach((d, i) => {
+        salesRow += `<td id="pred-sales-${i}" style="text-align:right;">—</td>`;
+    });
+    salesRow += '</tr>';
+    tbody.innerHTML += salesRow;
+
+    // Orders row
+    let ordersRow = '<tr><td style="font-weight:bold; text-align:right;">Orders</td>';
+    days.forEach((d, i) => {
+        ordersRow += `<td id="pred-orders-${i}" style="text-align:right;">—</td>`;
+    });
+    ordersRow += '</tr>';
+    tbody.innerHTML += ordersRow;
+
+    // Store dates for algo
+    window.predictionDates = days;
 }
 
 
