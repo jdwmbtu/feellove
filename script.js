@@ -671,9 +671,15 @@ let romTarget = growthType === 'percent' ? rom2024 * (1 + growthTarget / 100) : 
 function formatNumber(v, aov = false) {
     if (v === 0) return aov ? '$0.00' : '$0';
     const abs = Math.abs(v);
-    const fmt = aov ? abs.toFixed(2) : Math.round(abs).toString();
+    let fmt;
+    if (aov) {
+        fmt = abs.toFixed(2);
+    } else {
+        fmt = Math.round(abs).toLocaleString('en-US'); // $xx,xxx
+    }
     return v < 0 ? `<span class="negative">($${fmt})</span>` : `$${fmt}`;
 }
+
 function formatPercent(v) {
     if (v === '∞') return v;
     if (v === 0) return '0.0%';
