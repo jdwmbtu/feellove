@@ -276,6 +276,44 @@ function updateCombinedMetricsTable(store, month) {
         `;
         tbody.appendChild(row);
     });
+        // === SUMMARY ROWS ===
+    let totalSales24 = 0, totalOrders24 = 0, totalSales25 = 0, totalOrders25 = 0;
+
+    days.forEach(d => {
+        const s24 = avgs.salesAverages2024[d].length ? Math.round(avgs.salesAverages2024[d].reduce((a,b)=>a+b,0)/avgs.salesAverages2024[d].length) : 0;
+        const o24 = avgs.ordersAverages2024[d].length ? Math.round(avgs.ordersAverages2024[d].reduce((a,b)=>a+b,0)/avgs.ordersAverages2024[d].length) : 0;
+        const s25 = avgs.salesAverages2025[d].length ? Math.round(avgs.salesAverages2025[d].reduce((a,b)=>a+b,0)/avgs.salesAverages2025[d].length) : 0;
+        const o25 = avgs.ordersAverages2025[d].length ? Math.round(avgs.ordersAverages2025[d].reduce((a,b)=>a+b,0)/avgs.ordersAverages2025[d].length) : 0;
+
+        totalSales24 += s24;
+        totalOrders24 += o24;
+        totalSales25 += s25;
+        totalOrders25 += o25;
+    });
+
+    const avgAOV24 = totalOrders24 > 0 ? totalSales24 / totalOrders24 : 0;
+    const avgAOV25 = totalOrders25 > 0 ? totalSales25 / totalOrders25 : 0;
+
+    const summaryRow = document.createElement('tr');
+    summaryRow.style.fontWeight = 'bold';
+    summaryRow.style.backgroundColor = '#f0f0f0';
+    summaryRow.innerHTML = `
+        <td><strong>Total</strong></td>
+        <td>${formatNumber(totalSales24)}</td>
+        <td>${formatNumber(totalSales25)}</td>
+        <td>${formatNumber(totalSales25 - totalSales24)}</td>
+        <td>${formatPercent(totalSales24 > 0 ? ((totalSales25 - totalSales24) / totalSales24) * 100 : 0)}</td>
+        <td>${totalOrders24}</td>
+        <td>${totalOrders25}</td>
+        <td>${totalOrders25 - totalOrders24}</td>
+        <td>${formatPercent(totalOrders24 > 0 ? ((totalOrders25 - totalOrders24) / totalOrders24) * 100 : 0)}</td>
+        <td>${formatNumber(avgAOV24, true)}</td>
+        <td>${formatNumber(avgAOV25, true)}</td>
+        <td>${formatNumber(avgAOV25 - avgAOV24, true)}</td>
+        <td>${formatPercent(avgAOV24 > 0 ? ((avgAOV25 - avgAOV24) / avgAOV24) * 100 : 0)}</td>
+    `;
+    tbody.appendChild(summaryRow);
+    
 }
 
 /* -------------------------------------------------------------
