@@ -335,7 +335,7 @@ function updateSevenDayPredictionTable(store, month) {
         document.getElementById(`pred-orders-${i}`).textContent = predicted;
     });
 
-        // === PREDICT NET SALES ===
+    // === PREDICT NET SALES ===
     console.log('--- NET SALES PREDICTION DEBUG ---');
     const aovByDay = {};
     daysOfWeek.forEach(d => aovByDay[d] = []);
