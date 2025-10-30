@@ -377,20 +377,9 @@ function updateCombinedMetricsTable(store, month) {
     const monthlySales25 = data.mtd2025;
 
     // Orders from actual data (like original)
-    let monthlyOrders24 = 0, monthlyOrders25 = 0;
-    netsalesData.forEach(row => {
-        const d = new Date(row[2]);
-        if (isNaN(d) || d.toLocaleString('en-US', { month: 'long' }) !== month) return;
-
-        const orderRow = ordersData.find(o => new Date(o[2]).getTime() === d.getTime());
-        const orders = orderRow ? parseFloat(orderRow[storeColumns[store]]) || 0 : 0;
-
-        if (d.getFullYear() === 2024 && d.getDate() <= data.elapsedDays) {
-            monthlyOrders24 += orders;
-        } else if (d.getFullYear() === 2025 && d.getDate() <= data.elapsedDays) {
-            monthlyOrders25 += orders;
-        }
-    });
+  // Use MTD orders from calculateSalesData
+    const monthlyOrders24 = data.mtdOrders2024 || 0;
+    const monthlyOrders25 = data.mtdOrders2025 || 0;
 
     const monthlyAOV24 = monthlyOrders24 > 0 ? monthlySales24 / monthlyOrders24 : 0;
     const monthlyAOV25 = monthlyOrders25 > 0 ? monthlySales25 / monthlyOrders25 : 0;
