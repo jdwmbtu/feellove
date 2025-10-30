@@ -370,6 +370,7 @@ function updateSevenDayPredictionTable(store, month) {
         const predictedSales = Math.round(predictedOrders * avgAOV); // NO /1000
 
         document.getElementById(`pred-sales-${i}`).textContent = formatNumber(predictedSales);
+    });
 }
 
 
