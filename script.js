@@ -234,6 +234,58 @@ function calculateAverages(store, month) {
 }
 
 /* -------------------------------------------------------------
+   7-DAY PREDICTION TABLE
+   ------------------------------------------------------------- */
+function updateSevenDayPredictionTable(store, month) {
+    const container = document.getElementById('seven-day-prediction-container');
+    if (!container) return;
+
+    const tbody = container.querySelector('tbody');
+    tbody.innerHTML = '';
+
+    const lastDataDate = getLastDataDate(store, month);
+    const monthIndex = ['January','February','March','April','May','June','July','August','September','October','November','December'].indexOf(month);
+    const totalDays = new Date(2025, monthIndex + 1, 0).getDate();
+
+    // Start from next day
+    const startDate = lastDataDate ? new Date(lastDataDate) : new Date(2025, monthIndex, 1);
+    startDate.setDate(startDate.getDate() + 1);
+
+    const row = document.createElement('tr');
+
+    for (let i = 0; i < 7; i++) {
+        const current = new Date(startDate);
+        current.setDate(current.getDate() + i);
+
+        if (current.getMonth() !== monthIndex && current.getFullYear() === 2025) break; // stop at month end
+
+        const dayName = current.toLocaleString('en-US', { weekday: 'short' });
+        const dayNum = current.getDate();
+
+        row.innerHTML += `
+            <td style="text-align:center; font-weight:bold;">
+                ${dayName}<br>${dayNum}
+            </td>
+            <td id="pred-sales-${i}" style="text-align:right;">—</td>
+            <td id="pred-orders-${i}" style="text-align:right;">—</td>
+        `;
+    }
+
+    tbody.appendChild(row);
+
+    // Store dates for prediction algo
+    window.predictionDates = [];
+    for (let i = 0; i < 7; i++) {
+        const d = new Date(startDate);
+        d.setDate(d.getDate() + i);
+        if (d.getMonth() === monthIndex) {
+            window.predictionDates.push(d);
+        }
+    }
+}
+
+
+/* -------------------------------------------------------------
    COMBINED METRICS TABLE
    ------------------------------------------------------------- */
 function updateCombinedMetricsTable(store, month) {
