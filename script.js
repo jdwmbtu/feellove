@@ -298,7 +298,7 @@ function updateCombinedMetricsTable(store, month) {
     summaryRow.style.fontWeight = 'bold';
     summaryRow.style.backgroundColor = '#f0f0f0';
     summaryRow.innerHTML = `
-        <td><strong>Total</strong></td>
+        <td><strong>Weekly</strong></td>
         <td>${formatNumber(totalSales24)}</td>
         <td>${formatNumber(totalSales25)}</td>
         <td>${formatNumber(totalSales25 - totalSales24)}</td>
