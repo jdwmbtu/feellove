@@ -286,6 +286,54 @@ function updateSevenDayPredictionTable(store, month) {
 
     // Store dates for algo
     window.predictionDates = days;
+        // === PREDICT ORDERS ===
+    const dayAverages = {};
+    const daysOfWeek = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    daysOfWeek.forEach(d => dayAverages[d] = { past3: [], lastYear: 0 });
+
+    // Last 3 same weekdays (2025 or 2024)
+    ordersData.forEach(row => {
+        const d = new Date(row[2]);
+        if (d >= startDate) return; // only before prediction
+
+        const dayName = d.toLocaleString('en-US', { weekday: 'long' });
+        const orders = parseFloat(row[storeColumns[store]]) || 0;
+        if (orders > 0) {
+            dayAverages[dayName].past3.push(orders);
+        }
+    });
+
+    // Find closest week in 2024
+    const targetWeekStart = new Date(startDate);
+    targetWeekStart.setDate(targetWeekStart.getDate() - 7); // 1 week before prediction
+
+    const lastYearWeek = [];
+    for (let i = 0; i < 7; i++) {
+        const d = new Date(targetWeekStart);
+        d.setDate(d.getDate() + i);
+        const row = ordersData.find(r => {
+            const rd = new Date(r[2]);
+            return rd.getFullYear() === 2024 && rd.getTime() === d.getTime();
+        });
+        const orders = row ? parseFloat(row[storeColumns[store]]) || 0 : 0;
+        lastYearWeek.push(orders);
+    }
+
+    const lastYearWeekAvg = lastYearWeek.length > 0 ? lastYearWeek.reduce((a, b) => a + b, 0) / lastYearWeek.length : 1;
+
+    // Predict each day
+    days.forEach((d, i) => {
+        const dayName = d.toLocaleString('en-US', { weekday: 'long' });
+        const past3 = dayAverages[dayName].past3.slice(-3);
+        const avgPast3 = past3.length > 0 ? past3.reduce((a, b) => a + b, 0) / past3.length : 0;
+
+        // Shape from closest 2024 week
+        const lastYearDay = lastYearWeek[i] || avgPast3;
+        const shape = lastYearWeekAvg > 0 ? lastYearDay / lastYearWeekAvg : 1;
+        const predicted = Math.round(avgPast3 * shape);
+
+        document.getElementById(`pred-orders-${i}`).textContent = predicted;
+    });
 }
 
 
