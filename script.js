@@ -313,8 +313,48 @@ function updateCombinedMetricsTable(store, month) {
         <td>${formatPercent(avgAOV24 > 0 ? ((avgAOV25 - avgAOV24) / avgAOV24) * 100 : 0)}</td>
     `;
     tbody.appendChild(summaryRow);
+
+        // === MONTHLY TOTALS ROW ===
+    const monthDays2024 = netsalesData.filter(row => {
+        const d = new Date(row[2]);
+        return d.getFullYear() === 2024 && d.toLocaleString('en-US', { month: 'long' }) === month;
+    }).length;
+
+    const monthDays2025 = netsalesData.filter(row => {
+        const d = new Date(row[2]);
+        return d.getFullYear() === 2025 && d.toLocaleString('en-US', { month: 'long' }) === month;
+    }).length;
+
+    const monthlySales24 = totalSales24 * monthDays2024;
+    const monthlyOrders24 = totalOrders24 * monthDays2024;
+    const monthlyAOV24 = monthlyOrders24 > 0 ? monthlySales24 / monthlyOrders24 : 0;
+
+    const monthlySales25 = totalSales25 * monthDays2025;
+    const monthlyOrders25 = totalOrders25 * monthDays2025;
+    const monthlyAOV25 = monthlyOrders25 > 0 ? monthlySales25 / monthlyOrders25 : 0;
+
+    const monthlyRow = document.createElement('tr');
+    monthlyRow.style.fontWeight = 'bold';
+    monthlyRow.style.backgroundColor = '#e6e6e6';
+    monthlyRow.innerHTML = `
+        <td><strong>Monthly</strong></td>
+        <td>${formatNumber(monthlySales24)}</td>
+        <td>${formatNumber(monthlySales25)}</td>
+        <td>${formatNumber(monthlySales25 - monthlySales24)}</td>
+        <td>${formatPercent(monthlySales24 > 0 ? ((monthlySales25 - monthlySales24) / monthlySales24) * 100 : 0)}</td>
+        <td>${monthlyOrders24}</td>
+        <td>${monthlyOrders25}</td>
+        <td>${monthlyOrders25 - monthlyOrders24}</td>
+        <td>${formatPercent(monthlyOrders24 > 0 ? ((monthlyOrders25 - monthlyOrders24) / monthlyOrders24) * 100 : 0)}</td>
+        <td>${formatNumber(monthlyAOV24, true)}</td>
+        <td>${formatNumber(monthlyAOV25, true)}</td>
+        <td>${formatNumber(monthlyAOV25 - monthlyAOV24, true)}</td>
+        <td>${formatPercent(monthlyAOV24 > 0 ? ((monthlyAOV25 - monthlyAOV24) / monthlyAOV24) * 100 : 0)}</td>
+    `;
+    tbody.appendChild(monthlyRow);
     
 }
+
 
 /* -------------------------------------------------------------
    DAY COUNT TABLE
