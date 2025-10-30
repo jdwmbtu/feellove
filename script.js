@@ -460,6 +460,9 @@ function updateCombinedMetricsTable(store, month) {
     const data = calculateSalesData(store, month);
     const monthlySales24 = data.mtd2024;
     const monthlySales25 = data.mtd2025;
+    const monthlyOrders24 = 0;
+    const monthlyOrders25 = 0;
+
 
     netsalesData.forEach(row => {
         const d = new Date(row[2]);
