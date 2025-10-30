@@ -416,7 +416,7 @@ function updateForecastTable(store, month) {
 
     const rows = [
         { label: `${month} 2024`, mtd: data.mtd2024, rom: data.rom2024 },
-        { label: `${month} Growth Target`, mtd: data.mtdTarget, rom: data.romTarget },
+        { label: `${month} Growth Target ${growthTarget}${growthType === 'dollar' ? 'K' : '%'} `, mtd: data.mtdTarget, rom: data.romTarget },
         { label: `${month} 2025`, mtd: data.mtd2025, rom: data.rom2025 }
     ];
 
