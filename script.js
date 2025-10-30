@@ -408,7 +408,7 @@ function updateScenariosTable(store, month) {
 
     const scenarios = [
         { label: `${month} ${new Date().getFullYear() - 1} Repeats`, rom: data.rom2024 },
-        { label: `${month} ${new Date().getFullYear()} at ${growthTarget} Growth Rate`, rom: data.romTarget },
+        { label: `${month} ${new Date().getFullYear()} at ${growthTarget} ${growthType === 'dollar' ? '$K' : '%'} Growth Rate`, rom: data.romTarget },
         { label: `${month} ${new Date().getFullYear()} at Current Rate ${formatPercent(mtdGrowthPct)}`, rom: data.rom2025 }
     ];
 
