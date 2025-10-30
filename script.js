@@ -334,6 +334,43 @@ function updateSevenDayPredictionTable(store, month) {
 
         document.getElementById(`pred-orders-${i}`).textContent = predicted;
     });
+
+        // === PREDICT NET SALES ===
+    // AOV from most recent 3 weeks (same weekday)
+    const aovByDay = {};
+    daysOfWeek.forEach(d => aovByDay[d] = []);
+
+    // Collect AOV from last 3 weeks
+    netsalesData.forEach(row => {
+        const d = new Date(row[2]);
+        if (d >= startDate) return; // only before prediction
+
+        const dayName = d.toLocaleString('en-US', { weekday: 'long' });
+        const sales = parseFloat(row[storeColumns[store]]) || 0;
+
+        const orderRow = ordersData.find(o => {
+            const oDate = new Date(o[2]);
+            return oDate.getTime() === d.getTime();
+        });
+        const orders = orderRow ? parseFloat(orderRow[storeColumns[store]]) || 0 : 0;
+
+        const aov = orders > 0 ? sales / orders : 0;
+        if (aov > 0) {
+            aovByDay[dayName].push(aov);
+        }
+    });
+
+    // Predict Net Sales
+    days.forEach((d, i) => {
+        const dayName = d.toLocaleString('en-US', { weekday: 'long' });
+        const recentAOV = aovByDay[dayName].slice(-3);
+        const avgAOV = recentAOV.length > 0 ? recentAOV.reduce((a, b) => a + b, 0) / recentAOV.length : 0;
+
+        const predictedOrders = parseInt(document.getElementById(`pred-orders-${i}`).textContent) || 0;
+        const predictedSales = Math.round(predictedOrders * avgAOV);
+
+        document.getElementById(`pred-sales-${i}`).textContent = formatNumber(predictedSales);
+    });
 }
 
 
