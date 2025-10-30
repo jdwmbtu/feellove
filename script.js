@@ -314,23 +314,27 @@ function updateCombinedMetricsTable(store, month) {
     `;
     tbody.appendChild(summaryRow);
 
-        // === MONTHLY TOTALS ROW ===
-    const monthDays2024 = netsalesData.filter(row => {
-        const d = new Date(row[2]);
-        return d.getFullYear() === 2024 && d.toLocaleString('en-US', { month: 'long' }) === month;
-    }).length;
+    // === MONTHLY TOTALS ROW ===
+    let monthlySales24 = 0, monthlyOrders24 = 0, monthlySales25 = 0, monthlyOrders25 = 0;
 
-    const monthDays2025 = netsalesData.filter(row => {
+    netsalesData.forEach(row => {
         const d = new Date(row[2]);
-        return d.getFullYear() === 2025 && d.toLocaleString('en-US', { month: 'long' }) === month;
-    }).length;
+        if (isNaN(d) || d.toLocaleString('en-US', { month: 'long' }) !== month) return;
 
-    const monthlySales24 = totalSales24 * monthDays2024;
-    const monthlyOrders24 = totalOrders24 * monthDays2024;
+        const sales = parseFloat(row[storeColumns[store]]) || 0;
+        const orderRow = ordersData.find(o => new Date(o[2]).getTime() === d.getTime());
+        const orders = orderRow ? parseFloat(orderRow[storeColumns[store]]) || 0 : 0;
+
+        if (d.getFullYear() === 2024) {
+            monthlySales24 += sales;
+            monthlyOrders24 += orders;
+        } else if (d.getFullYear() === 2025) {
+            monthlySales25 += sales;
+            monthlyOrders25 += orders;
+        }
+    });
+
     const monthlyAOV24 = monthlyOrders24 > 0 ? monthlySales24 / monthlyOrders24 : 0;
-
-    const monthlySales25 = totalSales25 * monthDays2025;
-    const monthlyOrders25 = totalOrders25 * monthDays2025;
     const monthlyAOV25 = monthlyOrders25 > 0 ? monthlySales25 / monthlyOrders25 : 0;
 
     const monthlyRow = document.createElement('tr');
