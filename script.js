@@ -193,6 +193,7 @@ function updateTables() {
 
     const avgs = calculateAverages(store, month);
     updateCombinedMetricsTable(store, month);
+    updateSevenDayPredictionTable(store, month);  // NEW
     updateDayCountTable(store, month);
     updateForecastTable(store, month);
     updateScenariosTable(store, month);
@@ -791,6 +792,7 @@ window.onload = () => {
                     }
                 }
                 updateTables();  // This triggers Next Day logic
+
             })
             .catch(err => {
                 console.error('Init error:', err);
