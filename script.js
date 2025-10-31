@@ -361,57 +361,20 @@ function updateSevenDayPredictionTable(store, month) {
         }
     });
 
-// === PREDICT NET SALES ===
-    console.log('--- NET SALES PREDICTION DEBUG ---');
-    const aovByWeekDay = {};
-    daysOfWeek.forEach(d => aovByDay[d] = []);
-
-    // Use 2025 if ≥7 days, else 2024 (same as Metrics table)
-    let days2025 = 0;
-    netsalesData.forEach(row => {
-        const d = new Date(row[2]);
-        if (d.getFullYear() === 2025 && d.toLocaleString('en-US', { month: 'long' }) === month) {
-            const val = row[storeColumns[store]];
-            if (val != null && val.toString().trim() !== '') days2025++;
-        }
-    });
-    const use2025 = days2025 >= 7;
-
-    // Collect AOV from last 3 weeks (same year logic)
-    netsalesData.forEach(row => {
-        const d = new Date(row[2]);
-        if (d >= startDate) return;
-        if (d.getFullYear() !== (use2025 ? 2025 : 2024)) return;
-
-        const dayName = d.toLocaleString('en-US', { weekday: 'long' });
-        const sales = parseFloat(row[storeColumns[store]]) || 0;
-
-        const orderRow = ordersData.find(o => {
-            const oDate = new Date(o[2]);
-            return oDate.getTime() === d.getTime();
-        });
-        const orders = orderRow ? parseFloat(orderRow[storeColumns[store]]) || 0 : 0;
-
-        const aov = orders > 0 ? sales / orders : 0;
-        if (aov > 0) {
-            aovByWeekDay[dayName].push(aov);
-        }
-    });
-
     // Predict Net Sales
     days.forEach((d, i) => {
         const dayName = d.toLocaleString('en-US', { weekday: 'long' });
-        const recentAOV = aovByWeekDay[dayName].slice(-3);
+        const recentAOV = aovByDay[dayName].slice(-3);
         const avgAOV = recentAOV.length > 0 ? recentAOV.reduce((a, b) => a + b, 0) / recentAOV.length : 0;
 
         const predictedOrders = parseInt(document.getElementById(`pred-orders-${i}`).textContent) || 0;
         const predictedSales = Math.round(predictedOrders * avgAOV);
 
         console.log(`Day ${i} (${dayName}):`);
-        console.log(`  Recent AOVs: [${recentAOV.map(a => formatNumber(a, true)).join(', ')}]`);
-        console.log(`  Avg AOV: ${formatNumber(avgAOV, true)}`);
+        console.log(`  Recent AOVs: [${recentAOV.map(a => a.toFixed(2)).join(', ')}]`);
+        console.log(`  Avg AOV: $${avgAOV.toFixed(2)}`);
         console.log(`  Predicted Orders: ${predictedOrders}`);
-        console.log(`  Predicted Sales: ${formatNumber(predictedSales)}`);
+        console.log(`  Predicted Sales: $${predictedSales}`);
 
         document.getElementById(`pred-sales-${i}`).textContent = formatNumber(predictedSales);
     });
