@@ -286,7 +286,8 @@ function updateSevenDayPredictionTable(store, month) {
 
     // Store dates for algo
     window.predictionDates = days;
-        // === PREDICT ORDERS ===
+
+    // === PREDICT ORDERS ===
     const dayAverages = {};
     const daysOfWeek = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
     daysOfWeek.forEach(d => dayAverages[d] = { past3: [], lastYear: 0 });
@@ -294,7 +295,7 @@ function updateSevenDayPredictionTable(store, month) {
     // Last 3 same weekdays (2025 or 2024)
     ordersData.forEach(row => {
         const d = new Date(row[2]);
-        if (d >= startDate) return; // only before prediction
+        if (d >= startDate) return;
 
         const dayName = d.toLocaleString('en-US', { weekday: 'long' });
         const orders = parseFloat(row[storeColumns[store]]) || 0;
@@ -305,7 +306,7 @@ function updateSevenDayPredictionTable(store, month) {
 
     // Find closest week in 2024
     const targetWeekStart = new Date(startDate);
-    targetWeekStart.setDate(targetWeekStart.getDate() - 7); // 1 week before prediction
+    targetWeekStart.setDate(targetWeekStart.getDate() - 7);
 
     const lastYearWeek = [];
     for (let i = 0; i < 7; i++) {
@@ -327,7 +328,6 @@ function updateSevenDayPredictionTable(store, month) {
         const past3 = dayAverages[dayName].past3.slice(-3);
         const avgPast3 = past3.length > 0 ? past3.reduce((a, b) => a + b, 0) / past3.length : 0;
 
-        // Shape from closest 2024 week
         const lastYearDay = lastYearWeek[i] || avgPast3;
         const shape = lastYearWeekAvg > 0 ? lastYearDay / lastYearWeekAvg : 1;
         const predicted = Math.round(avgPast3 * shape);
@@ -335,15 +335,27 @@ function updateSevenDayPredictionTable(store, month) {
         document.getElementById(`pred-orders-${i}`).textContent = predicted;
     });
 
-    // === PREDICT NET SALES ===
+    // === PREDICT NET SALES (AOV same as Metrics table) ===
     console.log('--- NET SALES PREDICTION DEBUG ---');
     const aovByDay = {};
     daysOfWeek.forEach(d => aovByDay[d] = []);
+
+    // Use 2025 if ≥7 days, else 2024
+    let days2025 = 0;
+    netsalesData.forEach(row => {
+        const d = new Date(row[2]);
+        if (d.getFullYear() === 2025 && d.toLocaleString('en-US', { month: 'long' }) === month) {
+            const val = row[storeColumns[store]];
+            if (val != null && val.toString().trim() !== '') days2025++;
+        }
+    });
+    const use2025 = days2025 >= 7;
 
     // Collect AOV from last 3 weeks
     netsalesData.forEach(row => {
         const d = new Date(row[2]);
         if (d >= startDate) return;
+        if (d.getFullYear() !== (use2025 ? 2025 : 2024)) return;
 
         const dayName = d.toLocaleString('en-US', { weekday: 'long' });
         const sales = parseFloat(row[storeColumns[store]]) || 0;
@@ -357,7 +369,6 @@ function updateSevenDayPredictionTable(store, month) {
         const aov = orders > 0 ? sales / orders : 0;
         if (aov > 0) {
             aovByDay[dayName].push(aov);
-            
         }
     });
 
@@ -371,10 +382,11 @@ function updateSevenDayPredictionTable(store, month) {
         const predictedSales = Math.round(predictedOrders * avgAOV);
 
         console.log(`Day ${i} (${dayName}):`);
-        console.log(`  Recent AOVs: [${recentAOV.map(a => a.toFixed(2)).join(', ')}]`);
-        console.log(`  Avg AOV: $${avgAOV.toFixed(2)}`);
+        console.log(`  Year used for AOV: ${use2025 ? '2025' : '2024'}`);
+        console.log(`  Recent AOVs: [${recentAOV.map(a => formatNumber(a, true)).join(', ')}]`);
+        console.log(`  Avg AOV: ${formatNumber(avgAOV, true)}`);
         console.log(`  Predicted Orders: ${predictedOrders}`);
-        console.log(`  Predicted Sales: $${predictedSales}`);
+        console.log(`  Predicted Sales: ${formatNumber(predictedSales)}`);
 
         document.getElementById(`pred-sales-${i}`).textContent = formatNumber(predictedSales);
     });
