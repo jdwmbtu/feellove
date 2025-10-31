@@ -363,7 +363,7 @@ function updateSevenDayPredictionTable(store, month) {
 
     // === PREDICT NET SALES ===
     console.log('--- NET SALES PREDICTION DEBUG ---');
-    const aovByDay = {};
+    const aovByWeekDay = {};
     daysOfWeek.forEach(d => aovByDay[d] = []);
 
     // Use 2025 if ≥7 days, else 2024 (same as Metrics table)
@@ -394,14 +394,14 @@ function updateSevenDayPredictionTable(store, month) {
 
         const aov = orders > 0 ? sales / orders : 0;
         if (aov > 0) {
-            aovByDay[dayName].push(aov);
+            aovByWeekDay[dayName].push(aov);
         }
     });
 
     // Predict Net Sales
     days.forEach((d, i) => {
         const dayName = d.toLocaleString('en-US', { weekday: 'long' });
-        const recentAOV = aovByDay[dayName].slice(-3);
+        const recentAOV = aovByWeekDay[dayName].slice(-3);
         const avgAOV = recentAOV.length > 0 ? recentAOV.reduce((a, b) => a + b, 0) / recentAOV.length : 0;
 
         const predictedOrders = parseInt(document.getElementById(`pred-orders-${i}`).textContent) || 0;
