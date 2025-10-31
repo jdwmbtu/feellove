@@ -361,7 +361,7 @@ function updateSevenDayPredictionTable(store, month) {
         }
     });
 
-    // === PREDICT NET SALES ===
+// === PREDICT NET SALES ===
     console.log('--- NET SALES PREDICTION DEBUG ---');
     const aovByWeekDay = {};
     daysOfWeek.forEach(d => aovByDay[d] = []);
@@ -416,6 +416,7 @@ function updateSevenDayPredictionTable(store, month) {
         document.getElementById(`pred-sales-${i}`).textContent = formatNumber(predictedSales);
     });
     console.log('--- END DEBUG ---');
+}
 
 
 /* -------------------------------------------------------------
