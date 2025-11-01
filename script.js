@@ -350,62 +350,38 @@ function updateSevenDayPredictionTable(store, month) {
         document.getElementById(`pred-orders-${i}`).textContent = predicted;
     });
 
-    // === PREDICT NET SALES (AOV same as Metrics table) ===
-    console.log('--- NET SALES PREDICTION DEBUG ---');
-    const aovByDay = {};
-    daysOfWeek.forEach(d => aovByDay[d] = []);
+    // === PREDICT NET SALES USING DAILY AOV FROM METRICS TABLE ===
+    const avgs = calculateAverages(store, month);
+    const dayAOV = {};
 
-    // Use 2025 if ≥7 days, else 2024
-    let days2025 = 0;
-    netsalesData.forEach(row => {
-        const d = new Date(row[2]);
-        if (d.getFullYear() === 2025 && d.toLocaleString('en-US', { month: 'long' }) === month) {
-            const val = row[storeColumns[store]];
-            if (val != null && val.toString().trim() !== '') days2025++;
-        }
-    });
-    const use2025 = days2025 >= 7;
+    // Reuse daysOfWeek from Orders section above
+    // Build daily AOV map (2025 if available, else 2024)
+    daysOfWeek.forEach(dayName => {
+        const o25 = avgs.ordersAverages2025[dayName].length ? Math.round(avgs.ordersAverages2025[dayName].reduce((a,b)=>a+b,0)/avgs.ordersAverages2025[dayName].length) : 0;
+        const s25 = avgs.salesAverages2025[dayName].length ? Math.round(avgs.salesAverages2025[dayName].reduce((a,b)=>a+b,0)/avgs.salesAverages2025[dayName].length) : 0;
+        const o24 = avgs.ordersAverages2024[dayName].length ? Math.round(avgs.ordersAverages2024[dayName].reduce((a,b)=>a+b,0)/avgs.ordersAverages2024[dayName].length) : 0;
+        const s24 = avgs.salesAverages2024[dayName].length ? Math.round(avgs.salesAverages2024[dayName].reduce((a,b)=>a+b,0)/avgs.salesAverages2024[dayName].length) : 0;
 
-    // Collect AOV from last 3 weeks
-    netsalesData.forEach(row => {
-        const d = new Date(row[2]);
-        if (d >= startDate) return;
-        if (d.getFullYear() !== (use2025 ? 2025 : 2024)) return;
+        const aov25 = o25 > 0 ? s25 / o25 : 0;
+        const aov24 = o24 > 0 ? s24 / o24 : 0;
 
-        const dayName = d.toLocaleString('en-US', { weekday: 'long' });
-        const sales = parseFloat(row[storeColumns[store]]) || 0;
-
-        const orderRow = ordersData.find(o => {
-            const oDate = new Date(o[2]);
-            return oDate.getTime() === d.getTime();
-        });
-        const orders = orderRow ? parseFloat(orderRow[storeColumns[store]]) || 0 : 0;
-
-        const aov = orders > 0 ? sales / orders : 0;
-        if (aov > 0) {
-            aovByDay[dayName].push(aov);
-        }
+        dayAOV[dayName] = o25 > 0 ? aov25 : aov24;
     });
 
-    // Predict Net Sales
+    // Predict Net Sales using daily AOV
     days.forEach((d, i) => {
         const dayName = d.toLocaleString('en-US', { weekday: 'long' });
-        const recentAOV = aovByDay[dayName].slice(-3);
-        const avgAOV = recentAOV.length > 0 ? recentAOV.reduce((a, b) => a + b, 0) / recentAOV.length : 0;
-
+        const aov = dayAOV[dayName] || 0;
         const predictedOrders = parseInt(document.getElementById(`pred-orders-${i}`).textContent) || 0;
-        const predictedSales = Math.round(predictedOrders * avgAOV);
+        const predictedSales = Math.round(predictedOrders * aov);
 
         console.log(`Day ${i} (${dayName}):`);
-        console.log(`  Year used for AOV: ${use2025 ? '2025' : '2024'}`);
-        console.log(`  Recent AOVs: [${recentAOV.map(a => formatNumber(a, true)).join(', ')}]`);
-        console.log(`  Avg AOV: ${formatNumber(avgAOV, true)}`);
+        console.log(`  Daily AOV from Metrics: ${formatNumber(aov, true)}`);
         console.log(`  Predicted Orders: ${predictedOrders}`);
         console.log(`  Predicted Sales: ${formatNumber(predictedSales)}`);
 
         document.getElementById(`pred-sales-${i}`).textContent = formatNumber(predictedSales);
     });
-    console.log('--- END DEBUG ---');
 }
 
 
