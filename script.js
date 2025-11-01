@@ -476,12 +476,12 @@ function updateCombinedMetricsTable(store, month) {
     `;
     tbody.appendChild(summaryRow);
 
-        // === MONTHLY TOTALS ROW ===
+     // === MONTHLY TOTALS ROW ===
     const data = calculateSalesData(store, month);
     const monthlySales24 = data.mtd2024;
     const monthlySales25 = data.mtd2025;
 
-    // MTD Orders only
+    // Sum actual MTD orders
     let monthlyOrders24 = 0, monthlyOrders25 = 0;
     netsalesData.forEach(row => {
         const d = new Date(row[2]);
