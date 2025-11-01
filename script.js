@@ -491,8 +491,9 @@ function updateCombinedMetricsTable(store, month) {
     `;
     tbody.appendChild(summaryRow);
 
-       // === MONTHLY TOTALS ROW ===
+      // === MONTHLY TOTALS ROW ===
     const data = calculateSalesData(store, month);
+    const shift = isAdjusted ? 1 : 0; // DEFINE shift HERE
     const monthlySales24 = data.mtd2024;
     const monthlySales25 = data.mtd2025;
 
