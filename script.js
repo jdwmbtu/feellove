@@ -243,10 +243,25 @@ function updateSevenDayPredictionTable(store, month) {
     const tbody = container.querySelector('tbody');
     tbody.innerHTML = '';
 
-    const lastDataDate = getLastDataDate(store, month);
+        // Find last non-zero day (sales or orders)
+    let lastNonZeroDate = null;
+    netsalesData.forEach(row => {
+        const d = new Date(row[2]);
+        if (isNaN(d)) return;
 
-    // Start from next day
-    const startDate = lastDataDate ? new Date(lastDataDate) : new Date();
+        const sales = parseFloat(row[storeColumns[store]]) || 0;
+        const orderRow = ordersData.find(o => new Date(o[2]).getTime() === d.getTime());
+        const orders = orderRow ? parseFloat(orderRow[storeColumns[store]]) || 0 : 0;
+
+        if (sales > 0 || orders > 0) {
+            if (!lastNonZeroDate || d > lastNonZeroDate) {
+                lastNonZeroDate = d;
+            }
+        }
+    });
+
+    // Start from next day after last non-zero
+    const startDate = lastNonZeroDate ? new Date(lastNonZeroDate) : new Date();
     startDate.setDate(startDate.getDate() + 1);
 
     // Build 7 days
