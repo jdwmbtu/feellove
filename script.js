@@ -491,26 +491,27 @@ function updateCombinedMetricsTable(store, month) {
     `;
     tbody.appendChild(summaryRow);
 
-        // === MONTHLY TOTALS ROW ===
+       // === MONTHLY TOTALS ROW ===
     const data = calculateSalesData(store, month);
     const monthlySales24 = data.mtd2024;
     const monthlySales25 = data.mtd2025;
 
-    // Sum actual MTD orders
-    let monthlyOrders24 = 0, monthlyOrders25 = 0;
-    netsalesData.forEach(row => {
-        const d = new Date(row[2]);
-        if (isNaN(d) || d.toLocaleString('en-US', { month: 'long' }) !== month) return;
+    // SAME EXACT LOGIC AS NET SALES MTD — BUT FOR ORDERS
+    const monthlyOrders24 = ordersData.reduce((s, r) => {
+        const d = new Date(r[2]);
+        if (d.getFullYear() !== 2024 || d.toLocaleString('en-US',{month:'long'}) !== month) return s;
+        const day = d.getDate();
+        if (day < (1 + shift) || day > (data.elapsedDays + shift)) return s;
+        const v = r[storeColumns[store]];
+        return s + (v && v.toString().trim() !== '' ? parseFloat(v.toString().replace(/[^0-9.-]+/g, '') || 0) : 0);
+    }, 0);
 
-        const orderRow = ordersData.find(o => new Date(o[2]).getTime() === d.getTime());
-        const orders = orderRow ? parseFloat(orderRow[storeColumns[store]]) || 0 : 0;
-
-        if (d.getFullYear() === 2024 && d.getDate() <= data.elapsedDays) {
-            monthlyOrders24 += orders;
-        } else if (d.getFullYear() === 2025 && d.getDate() <= data.elapsedDays) {
-            monthlyOrders25 += orders;
-        }
-    });
+    const monthlyOrders25 = ordersData.reduce((s, r) => {
+        const d = new Date(r[2]);
+        if (d.getFullYear() !== 2025 || d > last2025 || d.toLocaleString('en-US',{month:'long'}) !== month) return s;
+        const v = r[storeColumns[store]];
+        return s + (v && v.toString().trim() !== '' ? parseFloat(v.toString().replace(/[^0-9.-]+/g, '') || 0) : 0);
+    }, 0);
 
     const monthlyAOV24 = monthlyOrders24 > 0 ? monthlySales24 / monthlyOrders24 : 0;
     const monthlyAOV25 = monthlyOrders25 > 0 ? monthlySales25 / monthlyOrders25 : 0;
@@ -519,7 +520,7 @@ function updateCombinedMetricsTable(store, month) {
     monthlyRow.style.fontWeight = 'bold';
     monthlyRow.style.backgroundColor = '#e6e6e6';
     monthlyRow.innerHTML = `
-        <td><strong>MTD Test</strong></td>
+        <td><strong>Monthly MTD</strong></td>
         <td>${formatNumber(monthlySales24)}</td>
         <td>${formatNumber(monthlySales25)}</td>
         <td>${formatNumber(monthlySales25 - monthlySales24)}</td>
