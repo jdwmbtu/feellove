@@ -491,9 +491,9 @@ function updateCombinedMetricsTable(store, month) {
     `;
     tbody.appendChild(summaryRow);
 
-      // === MONTHLY TOTALS ROW ===
+     // === MONTHLY TOTALS ROW ===
     const data = calculateSalesData(store, month);
-    const shift = isAdjusted ? 1 : 0; // DEFINE shift HERE
+    const shift = isAdjusted ? 1 : 0;
     const monthlySales24 = data.mtd2024;
     const monthlySales25 = data.mtd2025;
 
@@ -509,7 +509,7 @@ function updateCombinedMetricsTable(store, month) {
 
     const monthlyOrders25 = ordersData.reduce((s, r) => {
         const d = new Date(r[2]);
-        if (d.getFullYear() !== 2025 || d > last2025 || d.toLocaleString('en-US',{month:'long'}) !== month) return s;
+        if (d.getFullYear() !== 2025 || d > data.last2025 || d.toLocaleString('en-US',{month:'long'}) !== month) return s;
         const v = r[storeColumns[store]];
         return s + (v && v.toString().trim() !== '' ? parseFloat(v.toString().replace(/[^0-9.-]+/g, '') || 0) : 0);
     }, 0);
@@ -521,7 +521,7 @@ function updateCombinedMetricsTable(store, month) {
     monthlyRow.style.fontWeight = 'bold';
     monthlyRow.style.backgroundColor = '#e6e6e6';
     monthlyRow.innerHTML = `
-        <td><strong>Monthly MTD</strong></td>
+        <td><strong>Monthly MTD Test</strong></td>
         <td>${formatNumber(monthlySales24)}</td>
         <td>${formatNumber(monthlySales25)}</td>
         <td>${formatNumber(monthlySales25 - monthlySales24)}</td>
