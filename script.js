@@ -504,7 +504,7 @@ function updateCombinedMetricsTable(store, month) {
     monthlyRow.style.fontWeight = 'bold';
     monthlyRow.style.backgroundColor = '#e6e6e6';
     monthlyRow.innerHTML = `
-        <td><strong>Monthly MTD</strong></td>
+        <td><strong>Monthly MTD Test</strong></td>
         <td>${formatNumber(monthlySales24)}</td>
         <td>${formatNumber(monthlySales25)}</td>
         <td>${formatNumber(monthlySales25 - monthlySales24)}</td>
