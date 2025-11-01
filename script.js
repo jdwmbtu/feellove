@@ -916,14 +916,15 @@ let romTarget = growthType === 'percent' ? rom2024 * (1 + growthTarget / 100) : 
 
     const rom2025 = mtd2024 > 0 ? rom2024 * (mtd2025 / mtd2024) : 0;
 
-        return {
+    return {
         mtd2024: Math.round(mtd2024),
         mtd2025: Math.round(mtd2025),
         mtdTarget: mtdTarget,
         rom2024: Math.round(rom2024),
         rom2025: Math.round(rom2025),
         romTarget: romTarget,
-        elapsedDays: elapsedDays  // ADD THIS
+        elapsedDays: elapsedDays,
+        last2025: last2025  // ADD THIS
     };
 }
 
