@@ -189,7 +189,7 @@ async function refreshAndUpdateForecast() {
 function updateTables() {
     const month = document.getElementById('month-filter')?.value || '';
     const store = document.getElementById('store-filter')?.value || 'CAFE';
-    isAdjusted = document.getElementById('adjusted-toggle')?.checked || false;
+    isAdjusted = document.getElementById('adjusted-toggle')?.checked || true;
 
     const avgs = calculateAverages(store, month);
     updateCombinedMetricsTable(store, month);
