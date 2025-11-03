@@ -429,7 +429,7 @@ function updateCombinedMetricsTable(store, month) {
         `;
         tbody.appendChild(row);
     });
-        // === SUMMARY ROWS ===
+         // === SUMMARY ROWS ===
     let totalSales24 = 0, totalOrders24 = 0, totalSales25 = 0, totalOrders25 = 0;
 
     days.forEach(d => {
@@ -447,25 +447,33 @@ function updateCombinedMetricsTable(store, month) {
     const avgAOV24 = totalOrders24 > 0 ? totalSales24 / totalOrders24 : 0;
     const avgAOV25 = totalOrders25 > 0 ? totalSales25 / totalOrders25 : 0;
 
-    const summaryRow = document.createElement('tr');
-    summaryRow.style.fontWeight = 'bold';
-    summaryRow.style.backgroundColor = '#f0f0f0';
-    summaryRow.innerHTML = `
-        <td><strong>Weekly</strong></td>
-        <td>${formatNumber(totalSales24)}</td>
-        <td>${formatNumber(totalSales25)}</td>
-        <td>${formatNumber(totalSales25 - totalSales24)}</td>
-        <td>${formatPercent(totalSales24 > 0 ? ((totalSales25 - totalSales24) / totalSales24) * 100 : 0)}</td>
-        <td>${totalOrders24}</td>
-        <td>${totalOrders25}</td>
-        <td>${totalOrders25 - totalOrders24}</td>
-        <td>${formatPercent(totalOrders24 > 0 ? ((totalOrders25 - totalOrders24) / totalOrders24) * 100 : 0)}</td>
-        <td>${formatNumber(avgAOV24, true)}</td>
-        <td>${formatNumber(avgAOV25, true)}</td>
-        <td>${formatNumber(avgAOV25 - avgAOV24, true)}</td>
-        <td>${formatPercent(avgAOV24 > 0 ? ((avgAOV25 - avgAOV24) / avgAOV24) * 100 : 0)}</td>
-    `;
-    tbody.appendChild(summaryRow);
+    // NEW: Check if all 7 days have data (at least one entry in 2024 or 2025 averages for this month)
+    const hasFullWeekData = days.every(d => 
+        avgs.salesAverages2024[d].length > 0 || avgs.salesAverages2025[d].length > 0
+    );
+
+    if (hasFullWeekData) {
+        const summaryRow = document.createElement('tr');
+        summaryRow.style.fontWeight = 'bold';
+        summaryRow.style.backgroundColor = '#f0f0f0';
+        summaryRow.innerHTML = `
+            <td><strong>Weekly</strong></td>
+            <td>${formatNumber(totalSales24)}</td>
+            <td>${formatNumber(totalSales25)}</td>
+            <td>${formatNumber(totalSales25 - totalSales24)}</td>
+            <td>${formatPercent(totalSales24 > 0 ? ((totalSales25 - totalSales24) / totalSales24) * 100 : 0)}</td>
+            <td>${totalOrders24}</td>
+            <td>${totalOrders25}</td>
+            <td>${totalOrders25 - totalOrders24}</td>
+            <td>${formatPercent(totalOrders24 > 0 ? ((totalOrders25 - totalOrders24) / totalOrders24) * 100 : 0)}</td>
+            <td>${formatNumber(avgAOV24, true)}</td>
+            <td>${formatNumber(avgAOV25, true)}</td>
+            <td>${formatNumber(avgAOV25 - avgAOV24, true)}</td>
+            <td>${formatPercent(avgAOV24 > 0 ? ((avgAOV25 - avgAOV24) / avgAOV24) * 100 : 0)}</td>
+        `;
+        tbody.appendChild(summaryRow);
+    }
+
 
      // === MONTHLY TOTALS ROW ===
     const data = calculateSalesData(store, month);
@@ -497,7 +505,7 @@ function updateCombinedMetricsTable(store, month) {
     monthlyRow.style.fontWeight = 'bold';
     monthlyRow.style.backgroundColor = '#e6e6e6';
     monthlyRow.innerHTML = `
-        <td><strong>Monthly MTD Test</strong></td>
+        <td><strong>Month to Date</strong></td>
         <td>${formatNumber(monthlySales24)}</td>
         <td>${formatNumber(monthlySales25)}</td>
         <td>${formatNumber(monthlySales25 - monthlySales24)}</td>
