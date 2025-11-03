@@ -449,7 +449,7 @@ function updateCombinedMetricsTable(store, month) {
 
     // NEW: Check if all 7 days have data (at least one entry in 2024 or 2025 averages for this month)
     const hasFullWeekData = days.every(d => 
-        avgs.salesAverages2024[d].length > 0 || avgs.salesAverages2025[d].length > 0
+         avgs.salesAverages2025[d].length > 0
     );
 
     if (hasFullWeekData) {
