@@ -8,7 +8,7 @@ let netsalesData = null;
 let ordersData = null;
 let growthTarget = 10;
 let growthType = 'percent';
-let isAdjusted = false;
+let isAdjusted = true;
 let lastModifiedTime = null;
 
 /* -------------------------------------------------------------
@@ -189,7 +189,7 @@ async function refreshAndUpdateForecast() {
 function updateTables() {
     const month = document.getElementById('month-filter')?.value || '';
     const store = document.getElementById('store-filter')?.value || 'CAFE';
-    isAdjusted = document.getElementById('adjusted-toggle')?.checked || true;
+    isAdjusted = document.getElementById('adjusted-toggle')?.checked || false;
 
     const avgs = calculateAverages(store, month);
     updateCombinedMetricsTable(store, month);
