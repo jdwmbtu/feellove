@@ -1432,14 +1432,22 @@ function updateSummaryTable(store, month) {
     ];
 
     rows.forEach(([metric, value, source]) => {
-        const tr = document.createElement('tr');
+    const tr = document.createElement('tr');
+    if (metric === "Next Day") {
+        tr.innerHTML = `
+            <td onclick="updateChartForSummaryRow('next-day')" style="padding:3px; cursor: pointer; font-weight: bold; text-decoration: underline; color: #3498db;" onmouseover="this.style.textDecoration='none'; this.style.color='#2980b9';" onmouseout="this.style.textDecoration='underline'; this.style.color='#3498db';">${metric}</td>
+            <td style="text-align:center; padding:6px; font-weight:500;">${value}</td>
+            <td style="padding:3px; color:#666; font-size: small; font-style:italic;">${source}</td>
+        `;
+    } else {
         tr.innerHTML = `
             <td style="padding:3px;">${metric}</td>
             <td style="text-align:center; padding:6px; font-weight:500;">${value}</td>
             <td style="padding:3px; color:#666; font-size: small; font-style:italic;">${source}</td>
         `;
-        tbody.appendChild(tr);
-    });
+    }
+    tbody.appendChild(tr);
+});
 
     
 
