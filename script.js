@@ -1485,7 +1485,6 @@ function updateChartForSummaryRow(rowKey) {
         const elapsedStart2024 = 1 + shift;
         const elapsedEnd2024 = elapsedDay2025 + shift;
         // Build calendars
-        const weeks = Math.ceil((totalDays + (new Date(2025, monthIndex, 1).getDay() || 7) - 1) / 7); // Weeks needed
         let html = `
             <div style="text-align: center; margin: 10px 0;">
                 <h3 style="color: #34495e; margin: 0;">Month Comparison: ${month} 2024 vs. 2025 (Elapsed Days Highlighted)</h3>
@@ -1505,6 +1504,9 @@ function updateChartForSummaryRow(rowKey) {
                 adjYear = monthIndex === 11 ? year + 1 : year;
                 adjDate = new Date(adjYear, adjMonthIndex, 1);
             }
+            // Year-specific weeks calculation
+            const firstDay = new Date(year, monthIndex, 1).getDay();
+            const weeks = Math.ceil((totalDaysEffective + firstDay) / 7);
             // Precompute data per day (sales $, orders #) - for this year only
             const dayDataCurrent = {};
             const loopDays = is2025 ? totalDays : totalDaysEffective;
@@ -1539,7 +1541,7 @@ function updateChartForSummaryRow(rowKey) {
                         </thead>
                         <tbody>
             `;
-            let currentWeek = new Date(year, monthIndex, 1).getDay(); // 0=Sun, 6=Sat
+            let currentWeek = firstDay; // Reuse firstDay for padding count
             let day = 1;
             for (let w = 0; w < weeks; w++) {
                 html += '<tr>';
@@ -1565,7 +1567,7 @@ function updateChartForSummaryRow(rowKey) {
                         let titleDate = `${month} ${day}, ${year}`;
                         if (!is2025 && isAdjusted && day > totalDays) {
                             const adjMonthShort = adjDate.toLocaleDateString('en-US', { month: 'short' });
-                            dayLabel = `${adjMonthShort} 1`;
+                            dayLabel = `${adjMonthShort} 1 (adj.)`;
                             titleDate = `${adjMonthShort} 1, ${adjYear}`;
                         }
                         const salesK = (dayData[day].sales / 1000).toFixed(1);
