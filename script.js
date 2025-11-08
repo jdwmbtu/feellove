@@ -1109,6 +1109,15 @@ window.onload = () => {
             el.addEventListener('click', () => updateChartForSection(id));
         }
     });
+        // Add change listeners for filters/toggles
+    const monthFilter = document.getElementById('month-filter');
+    if (monthFilter) monthFilter.addEventListener('change', updateTables);
+    const storeFilter = document.getElementById('store-filter');
+    if (storeFilter) storeFilter.addEventListener('change', updateTables);
+    const adjustedToggle = document.getElementById('adjusted-toggle');
+    if (adjustedToggle) adjustedToggle.addEventListener('change', updateTables);
+    const growthTargetSel = document.getElementById('growth-target');
+    if (growthTargetSel) growthTargetSel.addEventListener('change', () => { updateGrowthTarget(); updateTables(); });
 
     gapi.load('client', () => {
         gapi.client.init({ apiKey: API_KEY, discoveryDocs: DISCOVERY_DOCS })
