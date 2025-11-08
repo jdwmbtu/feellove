@@ -1477,7 +1477,7 @@ function updateChartForSummaryRow(rowKey) {
         const totalDays = new Date(2025, monthIndex + 1, 0).getDate();
         let totalDaysEffective = totalDays;
 let adjMonthIndex = -1;
-let adjYear = year;
+let adjYear = 2024;
 let adjDate = null;
 if (!is2025 && isAdjusted) {
     totalDaysEffective = totalDays + 1;
