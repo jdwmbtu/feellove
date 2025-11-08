@@ -1475,16 +1475,6 @@ function updateChartForSummaryRow(rowKey) {
             return;
         }
         const totalDays = new Date(2025, monthIndex + 1, 0).getDate();
-        let totalDaysEffective = totalDays;
-let adjMonthIndex = -1;
-let adjYear = 2024;
-let adjDate = null;
-if (!is2025 && isAdjusted) {
-    totalDaysEffective = totalDays + 1;
-    adjMonthIndex = (monthIndex + 1) % 12;
-    adjYear = monthIndex === 11 ? year + 1 : year;
-    adjDate = new Date(adjYear, adjMonthIndex, 1);
-}
         const isAdjusted = document.getElementById('adjusted-toggle').checked || false;
         const currentDate = new Date('2025-11-08'); // Fixed for demo
         const isPastMonth = currentDate > new Date(2025, monthIndex + 1, 0);
@@ -1544,6 +1534,16 @@ netsalesData.forEach(row => {
 
         [2024, 2025].forEach(year => {
             const is2025 = year === 2025;
+            let totalDaysEffective = totalDays;
+let adjMonthIndex = -1;
+let adjYear = year;
+let adjDate = null;
+if (!is2025 && isAdjusted) {
+    totalDaysEffective = totalDays + 1;
+    adjMonthIndex = (monthIndex + 1) % 12;
+    adjYear = monthIndex === 11 ? year + 1 : year;
+    adjDate = new Date(adjYear, adjMonthIndex, 1);
+}
             const dayData = is2025 ? dayData2025 : dayData2024;
             const elapsedStart = is2025 ? 1 : elapsedStart2024;
             const elapsedEnd = is2025 ? elapsedDay2025 : Math.min(elapsedEnd2024, totalDays);
