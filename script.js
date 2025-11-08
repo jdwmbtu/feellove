@@ -1480,7 +1480,7 @@ function updateChartForSummaryRow(rowKey) {
         const lastDataDate = getLastDataDate(store, month);
         const elapsedDay2025 = lastDataDate ? lastDataDate.getDate() : (monthIndex < currentDate.getMonth() ? totalDays : Math.min(currentDate.getDate(), totalDays));
         const nextDay2025 = new Date(2025, monthIndex, elapsedDay2025 + 1);
-        const isMonthComplete = nextDay2025.getDate() > totalDays;
+        const isMonthComplete = nextDay2025.getDate() > totalDays || isPastMonth; // Add isPastMonth to complete status
 
         // Elapsed for 2024 (with shift)
         const shift = isAdjusted ? 1 : 0;
@@ -1521,7 +1521,7 @@ function updateChartForSummaryRow(rowKey) {
         let html = `
             <div style="text-align: center; margin: 10px 0;">
                 <h3 style="color: #34495e; margin: 0;">Month Comparison: ${month} 2024 vs. 2025 (Elapsed Days Highlighted)</h3>
-                <p style="color: #666; font-size: 0.9em;">Green: Elapsed | *Current | #Next Day | Bold: Has Data</p>
+                <p style="color: #666; font-size: 0.9em;">Green: Elapsed | Outlined: Next Day | Bold: Has Data</p>
             </div>
             <div style="display: flex; justify-content: center; gap: 20px; flex-wrap: wrap;">
         `;
@@ -1570,16 +1570,12 @@ function updateChartForSummaryRow(rowKey) {
                             cellStyle += ' background-color: #f8f9fa;'; // Light gray
                         }
 
-                        // Current Day (2025 only)
-                        if (is2025 && day === currentDate.getDate() && monthIndex === currentDate.getMonth()) {
-                            cellStyle += ' border: 2px solid #28a745 !important;'; // Green outline
-                            content += '*';
-                        }
+                        // Current Day (2025 only, not for past months) - no marker or outline
+                        // No action for current day
 
-                        // Next Day (2025 only)
-                        if (is2025 && day === nextDay2025.getDate() && !isMonthComplete) {
-                            cellStyle += ' background-color: #fff3cd !important;'; // Yellow
-                            content += '#';
+                        // Next Day (2025 only, skip for past months) - outline here
+                        if (is2025 && !isPastMonth && day === nextDay2025.getDate() && !isMonthComplete) {
+                            cellStyle += ' border: 2px solid #28a745 !important; background-color: #fff3cd !important;'; // Yellow bg + Green outline
                         }
 
                         // Metrics
