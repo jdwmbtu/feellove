@@ -1462,11 +1462,9 @@ function updateChartForSummaryRow(rowKey) {
     const container = document.getElementById('chart-container');
     const canvas = document.getElementById('dynamic-chart');
     if (!container || rowKey !== 'next-day') return;
-
     // Hide canvas, show HTML mode
     canvas.style.display = 'none';
     container.style.display = 'block';
-
     if (rowKey === 'next-day') {
         // Get month details
         const monthIndex = ['January','February','March','April','May','June','July','August','September','October','November','December'].indexOf(month);
@@ -1482,46 +1480,10 @@ function updateChartForSummaryRow(rowKey) {
         const elapsedDay2025 = lastDataDate ? lastDataDate.getDate() : (monthIndex < currentDate.getMonth() ? totalDays : Math.min(currentDate.getDate(), totalDays));
         const nextDay2025 = new Date(2025, monthIndex, elapsedDay2025 + 1);
         const isMonthComplete = nextDay2025.getDate() > totalDays || isPastMonth; // Add isPastMonth to complete status
-
         // Elapsed for 2024 (with shift)
         const shift = isAdjusted ? 1 : 0;
         const elapsedStart2024 = 1 + shift;
         const elapsedEnd2024 = elapsedDay2025 + shift;
-
-        // Precompute data per day (sales $, orders #)
-        const dayData2024 = {}, dayData2025 = {};
-        for (let d = 1; d <= totalDays; d++) {
-            dayData2024[d] = { sales: 0, orders: 0 };
-            dayData2025[d] = { sales: 0, orders: 0 };
-
-            // 2024 sales/orders
-            // 2024 sales/orders
-let fetchDate = new Date(year, monthIndex, d);
-if (!is2025 && isAdjusted && d > totalDays) {
-    fetchDate = adjDate;
-}
-netsalesData.forEach(row => {
-    const rowDate = new Date(row[2]);
-    if (rowDate.getTime() === fetchDate.getTime()) {
-        const salesVal = row[storeColumns[store]];
-        dayData2024[d].sales = parseFloat(salesVal?.toString().replace(/[^0-9.-]+/g, '') || 0);
-        const orderRow = ordersData.find(o => new Date(o[2]).getTime() === fetchDate.getTime());
-        dayData2024[d].orders = parseFloat(orderRow?.[storeColumns[store]] || 0);
-    }
-});
-
-            // 2025 sales/orders
-            netsalesData.forEach(row => {
-                const rowDate = new Date(row[2]);
-                if (rowDate.getFullYear() === 2025 && rowDate.toLocaleString('en-US', { month: 'long' }) === month && rowDate.getDate() === d) {
-                    const salesVal = row[storeColumns[store]];
-                    dayData2025[d].sales = parseFloat(salesVal?.toString().replace(/[^0-9.-]+/g, '') || 0);
-                    const orderRow = ordersData.find(o => new Date(o[2]).getTime() === rowDate.getTime());
-                    dayData2025[d].orders = parseFloat(orderRow?.[storeColumns[store]] || 0);
-                }
-            });
-        }
-
         // Build calendars
         const weeks = Math.ceil((totalDays + (new Date(2025, monthIndex, 1).getDay() || 7) - 1) / 7); // Weeks needed
         let html = `
@@ -1531,23 +1493,41 @@ netsalesData.forEach(row => {
             </div>
             <div style="display: flex; justify-content: center; gap: 20px; flex-wrap: wrap;">
         `;
-
         [2024, 2025].forEach(year => {
             const is2025 = year === 2025;
             let totalDaysEffective = totalDays;
-let adjMonthIndex = -1;
-let adjYear = year;
-let adjDate = null;
-if (!is2025 && isAdjusted) {
-    totalDaysEffective = totalDays + 1;
-    adjMonthIndex = (monthIndex + 1) % 12;
-    adjYear = monthIndex === 11 ? year + 1 : year;
-    adjDate = new Date(adjYear, adjMonthIndex, 1);
-}
-            const dayData = is2025 ? dayData2025 : dayData2024;
+            let adjMonthIndex = -1;
+            let adjYear = year;
+            let adjDate = null;
+            if (!is2025 && isAdjusted) {
+                totalDaysEffective = totalDays + 1;
+                adjMonthIndex = (monthIndex + 1) % 12;
+                adjYear = monthIndex === 11 ? year + 1 : year;
+                adjDate = new Date(adjYear, adjMonthIndex, 1);
+            }
+            // Precompute data per day (sales $, orders #) - for this year only
+            const dayDataCurrent = {};
+            const loopDays = is2025 ? totalDays : totalDaysEffective;
+            for (let d = 1; d <= loopDays; d++) {
+                dayDataCurrent[d] = { sales: 0, orders: 0 };
+                // Fetch sales/orders for this year
+                let fetchDate = new Date(year, monthIndex, d);
+                if (!is2025 && isAdjusted && d > totalDays) {
+                    fetchDate = adjDate;
+                }
+                netsalesData.forEach(row => {
+                    const rowDate = new Date(row[2]);
+                    if (rowDate.getTime() === fetchDate.getTime()) {
+                        const salesVal = row[storeColumns[store]];
+                        dayDataCurrent[d].sales = parseFloat(salesVal?.toString().replace(/[^0-9.-]+/g, '') || 0);
+                        const orderRow = ordersData.find(o => new Date(o[2]).getTime() === fetchDate.getTime());
+                        dayDataCurrent[d].orders = parseFloat(orderRow?.[storeColumns[store]] || 0);
+                    }
+                });
+            }
+            const dayData = dayDataCurrent;
             const elapsedStart = is2025 ? 1 : elapsedStart2024;
-            const elapsedEnd = is2025 ? elapsedDay2025 : Math.min(elapsedEnd2024, totalDays);
-
+            const elapsedEnd = is2025 ? elapsedDay2025 : Math.min(elapsedEnd2024, totalDaysEffective);
             html += `
                 <div style="min-width: 200px;">
                     <h4 style="text-align: center; color: #2c3e50; margin: 5px 0;">${year} ${month}</h4>
@@ -1559,50 +1539,55 @@ if (!is2025 && isAdjusted) {
                         </thead>
                         <tbody>
             `;
-
-            let currentWeek = new Date(year, monthIndex, 1).getDay(); // 1=Sun, 7=Sat
+            let currentWeek = new Date(year, monthIndex, 1).getDay(); // 0=Sun, 6=Sat
             let day = 1;
             for (let w = 0; w < weeks; w++) {
                 html += '<tr>';
-                for (let wd = 1; wd <= 7; wd++) { // Sun=1, Sat=7
+                for (let wd = 0; wd < 7; wd++) { // 0=Sun, 6=Sat
                     if (currentWeek > 0) {
                         html += '<td style="border: 1px solid #ddd; padding: 2px; height: 40px; vertical-align: top; background: #f9f9f9;"></td>';
                         currentWeek--;
                     } else if (day > totalDaysEffective) {
                         html += '<td style="border: 1px solid #ddd; padding: 2px; height: 40px; vertical-align: top; background: #f0f0f0;"></td>';
                     } else {
-                        
-                        
-                        
-                       let dayLabel = day.toString();
-let titleDate = `${month} ${day} ${year}`;
-if (!is2025 && isAdjusted && day > totalDays) {
-    const adjMonthShort = adjDate.toLocaleDateString('en-US', { month: 'short' });
-    dayLabel = `${adjMonthShort} 1 (adj.)`;
-    titleDate = `${adjMonthShort} 1, ${adjYear}`;
-}
-const salesK = (dayData[day].sales / 1000).toFixed(1);
-const orders = dayData[day].orders;
-const hasData = dayData[day].sales > 0 || orders > 0;
-content = `<div style="font-weight: ${hasData ? 'bold' : 'normal'};">${dayLabel}</div>`;
-if (hasData) {
-    content += `<div style="font-size: 0.7em; line-height: 1.1;">
-        <small>$${salesK}K</small><br>
-        <small>${orders || ''}</small>
-    </div>`;
-}
-html += `<td style="${cellStyle}" title="${titleDate}: Sales $${dayData[day].sales.toLocaleString()} | Orders: ${orders}">${content}</td>`;
-day++;
+                        const inElapsed = day >= elapsedStart && day <= elapsedEnd;
+                        let cellStyle = 'border: 1px solid #ddd; padding: 2px; height: 40px; vertical-align: top;';
+                        if (inElapsed) {
+                            cellStyle += ' background-color: #d4edda;'; // Light green
+                        } else if (day > elapsedEnd) {
+                            cellStyle += ' background-color: #f8f9fa;'; // Light gray
+                        }
+                        // Next Day (2025 only, skip for past months) - outline here
+                        if (is2025 && !isPastMonth && day === nextDay2025.getDate() && !isMonthComplete) {
+                            cellStyle += ' border: 2px solid #28a745 !important; background-color: #fff3cd !important;'; // Yellow bg + Green outline
+                        }
+                        let dayLabel = day.toString();
+                        let titleDate = `${month} ${day}, ${year}`;
+                        if (!is2025 && isAdjusted && day > totalDays) {
+                            const adjMonthShort = adjDate.toLocaleDateString('en-US', { month: 'short' });
+                            dayLabel = `${adjMonthShort} 1 (adj.)`;
+                            titleDate = `${adjMonthShort} 1, ${adjYear}`;
+                        }
+                        const salesK = (dayData[day].sales / 1000).toFixed(1);
+                        const orders = dayData[day].orders;
+                        const hasData = dayData[day].sales > 0 || orders > 0;
+                        let content = `<div style="font-weight: ${hasData ? 'bold' : 'normal'};">${dayLabel}</div>`;
+                        if (hasData) {
+                            content += `<div style="font-size: 0.7em; line-height: 1.1;">
+                                <small>$${salesK}K</small><br>
+                                <small>${orders || ''}</small>
+                            </div>`;
+                        }
+                        html += `<td style="${cellStyle}" title="${titleDate}: Sales $${dayData[day].sales.toLocaleString()} | Orders: ${orders}">${content}</td>`;
+                        day++;
                     }
                 }
                 html += '</tr>';
             }
             html += '</tbody></table></div>';
         });
-
         html += '</div>';
         container.innerHTML = html;
     }
-
     // For other rows, extend similarly (e.g., if (rowKey === 'mtd-growth') { ... })
 }
