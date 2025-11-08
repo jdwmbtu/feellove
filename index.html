@@ -5,10 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Store Dashboard</title>
     <script src="https://apis.google.com/js/api.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         body { font-family: Arial, sans-serif; text-align: center; background: #f8f9fa; }
         h1 { margin: 20px 0; color: #2c3e50; }
         h2, h3 { color: #34495e; }
+        h2.clickable { cursor: pointer; }
+        h2.clickable:hover { text-decoration: underline; color: #3498db; }
 
         /* Base table style */
         .data-table {
@@ -108,10 +111,6 @@
             padding: 8px 12px;
         }
 
-    
-
-
-
         /* Status */
         #status-cell {
             font-weight: bold;
@@ -119,34 +118,51 @@
             padding: 8px 0;
         }
 
+        /* Chart Container */
+        #chart-container {
+            margin: 20px auto;
+            width: 90%;
+            max-width: 800px;
+            height: 400px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            padding: 10px;
+            display: none;
+        }
+
         /* RESPONSIVE TABLES - MOBILE */
-@media (max-width: 768px) {
-    .data-table {
-        font-size: 0.75em;
-        width: 100%;
-    }
-    .data-table th, .data-table td {
-        padding: 4px 6px;
-    }
-    .scrollable {
-        max-height: 280px;
-        overflow-x: auto;
-        -webkit-overflow-scrolling: touch;
-    }
-    .top-row, .middle-row {
-        flex-direction: column;
-    }
-    .left-panel, .right-panel {
-        min-width: 100%;
-        max-width: 100%;
-    }
-    #metrics-table th, #metrics-table td {
-        font-size: 0.7em;
-    }
-    #summary-table th, #summary-table td {
-        font-size: 0.8em;
-    }
-}
+        @media (max-width: 768px) {
+            .data-table {
+                font-size: 0.75em;
+                width: 100%;
+            }
+            .data-table th, .data-table td {
+                padding: 4px 6px;
+            }
+            .scrollable {
+                max-height: 280px;
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+            .top-row, .middle-row {
+                flex-direction: column;
+            }
+            .left-panel, .right-panel {
+                min-width: 100%;
+                max-width: 100%;
+            }
+            #metrics-table th, #metrics-table td {
+                font-size: 0.7em;
+            }
+            #summary-table th, #summary-table td {
+                font-size: 0.8em;
+            }
+            #chart-container {
+                width: 100%;
+                height: 300px;
+            }
+        }
     </style>
 </head>
 <body>
@@ -229,7 +245,7 @@
     
     <!-- LEFT: Simple Forecast -->
     <div class="left-panel">
-        <h2 style="margin:0 0 10px 0;">Simple Forecast</h2>
+        <h2 id="forecast-h2" class="clickable" style="margin:0 0 10px 0;">Simple Forecast</h2>
         <table id="forecast-table" class="data-table" style="font-size: 0.9em;">
             <thead>
                 <tr>
@@ -245,7 +261,7 @@
 
     <!-- RIGHT: Scenarios -->
     <div class="right-panel">
-        <h2 style="margin:0 0 10px 0;">Scenarios</h2>
+        <h2 id="scenarios-h2" class="clickable" style="margin:0 0 10px 0;">Scenarios</h2>
         <table id="scenarios-table" class="data-table" style="font-size: 0.9em;">
             <thead>
                 <tr>
@@ -261,9 +277,13 @@
     </div>
 </div>
 
+<!-- DYNAMIC CHART SECTION -->
+<div id="chart-container">
+    <canvas id="dynamic-chart"></canvas>
+</div>
 
 <!-- 7-DAY PREDICTION – HORIZONTAL -->
-<h2>Next 7 Days Prediction</h2>
+<h2 id="seven-day-h2" class="clickable">Next 7 Days Prediction</h2>
 <div id="seven-day-prediction-container">
     <table class="data-table" style="font-size:0.85em; width:100%;">
         <tbody></tbody>
@@ -271,7 +291,7 @@
 </div>
 
 <!-- MIDDLE: Daily Metrics -->
-<h2>Daily Metrics</h2>
+<h2 id="metrics-h2" class="clickable">Daily Metrics</h2>
     <table id="metrics-table" class="data-table">
         <thead>
             <tr>
@@ -300,7 +320,7 @@
 <p id="metrics-count" style="margin:5px 0; font-size:0.8em;"></p>
 
 <!-- BOTTOM: Day Count -->
-<h2>Day Counts by Month</h2>
+<h2 id="daycount-h2" class="clickable">Day Counts by Month</h2>
 <table id="daycount-table" class="data-table">
     <thead>
         <tr>
