@@ -1319,11 +1319,24 @@ function updateSummaryTable(store, month) {
 
         rows.forEach(([metric, value, source]) => {
             const tr = document.createElement('tr');
-            tr.innerHTML = `
+            // Inside rows.forEach, for the "Next Day" row:
+            if (metric === "Next Day") {
+                tr.innerHTML = `
+                    <td onclick="updateChartForSummaryRow('next-day')" style="padding:3px; cursor: pointer; font-weight: bold; text-decoration: underline; color: #3498db;" onmouseover="this.style.textDecoration='none'; this.style.color='#2980b9';" onmouseout="this.style.textDecoration='underline'; this.style.color='#3498db';">${metric}</td>
+                    <td style="text-align:center; padding:6px; font-weight:500;">${value}</td>
+                    <td style="padding:3px; color:#666; font-size: small; font-style:italic;">${source}</td>
+                `;
+            } else {
+                tr.innerHTML = `
                 <td style="padding:6px;">${metric}</td>
                 <td style="text-align:right; padding:6px; font-weight:500;">${value}</td>
                 <td style="padding:6px; color:#666; font-style:italic;">${source}</td>
             `;
+            }
+            
+            
+            
+            
             tbody.appendChild(tr);
         });
         return;
@@ -1434,4 +1447,158 @@ function updateSummaryTable(store, month) {
     });
 
     
+
+
+    
+}
+
+function updateChartForSummaryRow(rowKey) {
+    const store = document.getElementById('store-filter').value || 'CAFE';
+    const month = document.getElementById('month-filter').value || '';
+    const container = document.getElementById('chart-container');
+    const canvas = document.getElementById('dynamic-chart');
+    if (!container || rowKey !== 'next-day') return;
+
+    // Hide canvas, show HTML mode
+    canvas.style.display = 'none';
+    container.style.display = 'block';
+
+    if (rowKey === 'next-day') {
+        // Get month details
+        const monthIndex = ['January','February','March','April','May','June','July','August','September','October','November','December'].indexOf(month);
+        if (monthIndex === -1) {
+            container.innerHTML = '<p style="text-align:center; color:#666;">Select a month for calendar view.</p>';
+            return;
+        }
+        const totalDays = new Date(2025, monthIndex + 1, 0).getDate();
+        const isAdjusted = document.getElementById('adjusted-toggle').checked || false;
+        const currentDate = new Date('2025-11-08'); // Fixed for demo
+        const isPastMonth = currentDate > new Date(2025, monthIndex + 1, 0);
+        const lastDataDate = getLastDataDate(store, month);
+        const elapsedDay2025 = lastDataDate ? lastDataDate.getDate() : (monthIndex < currentDate.getMonth() ? totalDays : Math.min(currentDate.getDate(), totalDays));
+        const nextDay2025 = new Date(2025, monthIndex, elapsedDay2025 + 1);
+        const isMonthComplete = nextDay2025.getDate() > totalDays;
+
+        // Elapsed for 2024 (with shift)
+        const shift = isAdjusted ? 1 : 0;
+        const elapsedStart2024 = 1 + shift;
+        const elapsedEnd2024 = elapsedDay2025 + shift;
+
+        // Precompute data per day (sales $, orders #)
+        const dayData2024 = {}, dayData2025 = {};
+        for (let d = 1; d <= totalDays; d++) {
+            dayData2024[d] = { sales: 0, orders: 0 };
+            dayData2025[d] = { sales: 0, orders: 0 };
+
+            // 2024 sales/orders
+            netsalesData.forEach(row => {
+                const rowDate = new Date(row[2]);
+                if (rowDate.getFullYear() === 2024 && rowDate.toLocaleString('en-US', { month: 'long' }) === month && rowDate.getDate() === d) {
+                    const salesVal = row[storeColumns[store]];
+                    dayData2024[d].sales = parseFloat(salesVal?.toString().replace(/[^0-9.-]+/g, '') || 0);
+                    const orderRow = ordersData.find(o => new Date(o[2]).getTime() === rowDate.getTime());
+                    dayData2024[d].orders = parseFloat(orderRow?.[storeColumns[store]] || 0);
+                }
+            });
+
+            // 2025 sales/orders
+            netsalesData.forEach(row => {
+                const rowDate = new Date(row[2]);
+                if (rowDate.getFullYear() === 2025 && rowDate.toLocaleString('en-US', { month: 'long' }) === month && rowDate.getDate() === d) {
+                    const salesVal = row[storeColumns[store]];
+                    dayData2025[d].sales = parseFloat(salesVal?.toString().replace(/[^0-9.-]+/g, '') || 0);
+                    const orderRow = ordersData.find(o => new Date(o[2]).getTime() === rowDate.getTime());
+                    dayData2025[d].orders = parseFloat(orderRow?.[storeColumns[store]] || 0);
+                }
+            });
+        }
+
+        // Build calendars
+        const weeks = Math.ceil((totalDays + (new Date(2025, monthIndex, 1).getDay() || 7) - 1) / 7); // Weeks needed
+        let html = `
+            <div style="text-align: center; margin: 10px 0;">
+                <h3 style="color: #34495e; margin: 0;">Month Comparison: ${month} 2024 vs. 2025 (Elapsed Days Highlighted)</h3>
+                <p style="color: #666; font-size: 0.9em;">Green: Elapsed | *Current | #Next Day | Bold: Has Data</p>
+            </div>
+            <div style="display: flex; justify-content: center; gap: 20px; flex-wrap: wrap;">
+        `;
+
+        [2024, 2025].forEach(year => {
+            const is2025 = year === 2025;
+            const dayData = is2025 ? dayData2025 : dayData2024;
+            const elapsedStart = is2025 ? 1 : elapsedStart2024;
+            const elapsedEnd = is2025 ? elapsedDay2025 : Math.min(elapsedEnd2024, totalDays);
+
+            html += `
+                <div style="min-width: 200px;">
+                    <h4 style="text-align: center; color: #2c3e50; margin: 5px 0;">${year} ${month}</h4>
+                    <table style="border-collapse: collapse; margin: 0 auto; font-size: 0.8em;">
+                        <thead>
+                            <tr style="background: #e0e0e0;">
+                                ${['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => `<th style="border: 1px solid #ddd; padding: 4px;">${day}</th>`).join('')}
+                            </tr>
+                        </thead>
+                        <tbody>
+            `;
+
+            let currentWeek = new Date(year, monthIndex, 1).getDay() || 7; // 1=Sun, 7=Sat
+            let day = 1;
+            for (let w = 0; w < weeks; w++) {
+                html += '<tr>';
+                for (let wd = 1; wd <= 7; wd++) { // Sun=1, Sat=7
+                    if (currentWeek > 1) {
+                        html += '<td style="border: 1px solid #ddd; padding: 2px; height: 40px; vertical-align: top; background: #f9f9f9;"></td>';
+                        currentWeek--;
+                    } else if (day > totalDays) {
+                        html += '<td style="border: 1px solid #ddd; padding: 2px; height: 40px; vertical-align: top; background: #f0f0f0;"></td>';
+                    } else {
+                        const salesK = (dayData[day].sales / 1000).toFixed(1);
+                        const orders = dayData[day].orders;
+                        const hasData = dayData[day].sales > 0;
+                        const dayStr = day.toString();
+                        let cellStyle = 'border: 1px solid #ddd; padding: 2px; height: 40px; vertical-align: top;';
+                        let content = `<div style="font-weight: ${hasData ? 'bold' : 'normal'};">${dayStr}</div>`;
+
+                        // Background/Outline logic
+                        const inElapsed = day >= elapsedStart && day <= elapsedEnd;
+                        if (inElapsed) {
+                            cellStyle += ' background-color: #d4edda;'; // Light green
+                        } else if (day > elapsedEnd) {
+                            cellStyle += ' background-color: #f8f9fa;'; // Light gray
+                        }
+
+                        // Current Day (2025 only)
+                        if (is2025 && day === currentDate.getDate() && monthIndex === currentDate.getMonth()) {
+                            cellStyle += ' border: 2px solid #28a745 !important;'; // Green outline
+                            content += '*';
+                        }
+
+                        // Next Day (2025 only)
+                        if (is2025 && day === nextDay2025.getDate() && !isMonthComplete) {
+                            cellStyle += ' background-color: #fff3cd !important;'; // Yellow
+                            content += '#';
+                        }
+
+                        // Metrics
+                        if (dayData[day].sales > 0 || orders > 0) {
+                            content += `<div style="font-size: 0.7em; line-height: 1.1;">
+                                <small>$${salesK}K</small><br>
+                                <small>${orders || ''}</small>
+                            </div>`;
+                        }
+
+                        html += `<td style="${cellStyle}" title="Sales: $${dayData[day].sales.toLocaleString()} | Orders: ${orders}">${content}</td>`;
+                        day++;
+                    }
+                }
+                html += '</tr>';
+            }
+            html += '</tbody></table></div>';
+        });
+
+        html += '</div>';
+        container.innerHTML = html;
+    }
+
+    // For other rows, extend similarly (e.g., if (rowKey === 'mtd-growth') { ... })
 }
