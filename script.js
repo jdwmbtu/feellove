@@ -1544,12 +1544,12 @@ function updateChartForSummaryRow(rowKey) {
                         <tbody>
             `;
 
-            let currentWeek = new Date(year, monthIndex, 1).getDay() || 7; // 1=Sun, 7=Sat
+            let currentWeek = new Date(year, monthIndex, 1).getDay(); // 1=Sun, 7=Sat
             let day = 1;
             for (let w = 0; w < weeks; w++) {
                 html += '<tr>';
                 for (let wd = 1; wd <= 7; wd++) { // Sun=1, Sat=7
-                    if (currentWeek > 1) {
+                    if (currentWeek > 0) {
                         html += '<td style="border: 1px solid #ddd; padding: 2px; height: 40px; vertical-align: top; background: #f9f9f9;"></td>';
                         currentWeek--;
                     } else if (day > totalDays) {
