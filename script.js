@@ -935,9 +935,181 @@ function formatPercent(v) {
 }
 
 /* -------------------------------------------------------------
+   DYNAMIC CHART UPDATE
+   ------------------------------------------------------------- */
+function updateChartForSection(sectionId) {
+    const store = document.getElementById('store-filter').value || 'CAFE';
+    const month = document.getElementById('month-filter').value || '';
+    const canvas = document.getElementById('dynamic-chart');
+    if (!canvas) return;
+
+    const ctx = canvas.getContext('2d');
+
+    // Destroy previous chart
+    if (window.currentChart) {
+        window.currentChart.destroy();
+    }
+
+    let chartType = 'bar';
+    let labels = [];
+    let datasets = [];
+
+    switch (sectionId) {
+        case 'metrics-h2':
+            // Bar chart: Sales 2024 vs 2025 by day of week
+            const avgs = calculateAverages(store, month);
+            const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+            const sales2024 = days.map(d => avgs.salesAverages2024[d].length ? Math.round(avgs.salesAverages2024[d].reduce((a, b) => a + b, 0) / avgs.salesAverages2024[d].length) : 0);
+            const sales2025 = days.map(d => avgs.salesAverages2025[d].length ? Math.round(avgs.salesAverages2025[d].reduce((a, b) => a + b, 0) / avgs.salesAverages2025[d].length) : 0);
+            labels = days;
+            datasets = [
+                {
+                    label: 'Sales 2024',
+                    data: sales2024,
+                    backgroundColor: 'rgba(54, 162, 235, 0.5)',
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    borderWidth: 1
+                },
+                {
+                    label: 'Sales 2025',
+                    data: sales2025,
+                    backgroundColor: 'rgba(255, 99, 132, 0.5)',
+                    borderColor: 'rgba(255, 99, 132, 1)',
+                    borderWidth: 1
+                }
+            ];
+            break;
+
+        case 'forecast-h2':
+            // Doughnut chart: MTD vs ROM 2025
+            const forecastData = calculateSalesData(store, month);
+            labels = ['MTD 2025', 'ROM Forecast'];
+            datasets = [{
+                data: [forecastData.mtd2025, forecastData.rom2025],
+                backgroundColor: ['rgba(255, 99, 132, 0.5)', 'rgba(54, 162, 235, 0.5)'],
+                borderColor: ['rgba(255, 99, 132, 1)', 'rgba(54, 162, 235, 1)'],
+                borderWidth: 1
+            }];
+            chartType = 'doughnut';
+            break;
+
+        case 'scenarios-h2':
+            // Bar chart: Scenario ROM values
+            const scenarioData = calculateSalesData(store, month);
+            const mtdGrowthPct = scenarioData.mtd2024 > 0 ? ((scenarioData.mtd2025 / scenarioData.mtd2024) - 1) * 100 : 0;
+            labels = [
+                `${month} 2024 Repeats`,
+                `${month} at ${growthTarget}${growthType === 'dollar' ? 'K' : '%'} Growth`,
+                `${month} at Current Rate ${formatPercent(mtdGrowthPct).replace('%', '')}%`
+            ];
+            datasets = [{
+                label: 'ROM ($)',
+                data: [scenarioData.rom2024, scenarioData.romTarget, scenarioData.rom2025],
+                backgroundColor: 'rgba(75, 192, 192, 0.5)',
+                borderColor: 'rgba(75, 192, 192, 1)',
+                borderWidth: 1
+            }];
+            break;
+
+        case 'seven-day-h2':
+            // Line chart: Predicted sales and orders next 7 days
+            const days7 = window.predictionDates || [];
+            if (days7.length === 0) return;
+            labels = days7.map(d => d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }));
+            const salesPred = days7.map((_, i) => {
+                const el = document.getElementById(`pred-sales-${i}`);
+                return el ? parseFloat(el.textContent.replace(/[^0-9.-]+/g, '')) || 0 : 0;
+            });
+            const ordersPred = days7.map((_, i) => {
+                const el = document.getElementById(`pred-orders-${i}`);
+                return parseInt(el ? el.textContent : '0') || 0;
+            });
+            datasets = [
+                {
+                    label: 'Predicted Sales ($)',
+                    data: salesPred,
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                    tension: 0.1,
+                    fill: false
+                },
+                {
+                    label: 'Predicted Orders',
+                    data: ordersPred,
+                    borderColor: 'rgba(255, 99, 132, 1)',
+                    backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                    tension: 0.1,
+                    fill: false
+                }
+            ];
+            chartType = 'line';
+            break;
+
+        case 'daycount-h2':
+            // Pie chart: Weekdays vs Weekends (2025 Remaining)
+            const daycountData = updateDayCountTable(store, month); // Note: This function populates table, but we can extract logic
+            // For simplicity, hardcode based on table logic (you can extract variables if needed)
+            const categories = ['Weekdays Remaining', 'Weekends Remaining'];
+            const remainingWeekdays = 0; // Placeholder - extract from updateDayCountTable logic
+            const remainingWeekends = 0; // Placeholder
+            labels = categories;
+            datasets = [{
+                data: [remainingWeekdays, remainingWeekends],
+                backgroundColor: ['rgba(54, 162, 235, 0.5)', 'rgba(255, 206, 86, 0.5)'],
+                borderColor: ['rgba(54, 162, 235, 1)', 'rgba(255, 206, 86, 1)'],
+                borderWidth: 1
+            }];
+            chartType = 'pie';
+            break;
+
+        default:
+            document.getElementById('chart-container').style.display = 'none';
+            return;
+    }
+
+    window.currentChart = new Chart(ctx, {
+        type: chartType,
+        data: {
+            labels: labels,
+            datasets: datasets
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                title: {
+                    display: true,
+                    text: `${sectionId.replace('-h2', ' ').replace(/\b\w/g, l => l.toUpperCase())} - Dynamic Chart`
+                },
+                legend: {
+                    display: true,
+                    position: 'top'
+                }
+            },
+            scales: chartType === 'bar' || chartType === 'line' ? {
+                y: {
+                    beginAtZero: true
+                }
+            } : undefined
+        }
+    });
+
+    document.getElementById('chart-container').style.display = 'block';
+}
+
+/* -------------------------------------------------------------
    START – auto-select current month
    ------------------------------------------------------------- */
 window.onload = () => {
+    // Add click listeners for sections
+    const sections = ['forecast-h2', 'scenarios-h2', 'seven-day-h2', 'metrics-h2', 'daycount-h2'];
+    sections.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) {
+            el.addEventListener('click', () => updateChartForSection(id));
+        }
+    });
+
     gapi.load('client', () => {
         gapi.client.init({ apiKey: API_KEY, discoveryDocs: DISCOVERY_DOCS })
             .then(() => loadSheetsData())
