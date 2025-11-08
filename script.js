@@ -1567,7 +1567,7 @@ function updateChartForSummaryRow(rowKey) {
                         let titleDate = `${month} ${day}, ${year}`;
                         if (!is2025 && isAdjusted && day > totalDays) {
                             const adjMonthShort = adjDate.toLocaleDateString('en-US', { month: 'short' });
-                            dayLabel = `${adjMonthShort} 1 (adj.)`;
+                            dayLabel = `${adjMonthShort} 1`;
                             titleDate = `${adjMonthShort} 1, ${adjYear}`;
                         }
                         const salesK = (dayData[day].sales / 1000).toFixed(1);
