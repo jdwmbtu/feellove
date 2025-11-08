@@ -198,6 +198,12 @@ function updateTables() {
     updateForecastTable(store, month);
     updateScenariosTable(store, month);
     updateSummaryTable(store, month);
+    // Refresh current chart if active
+    if (window.currentChart) {
+        const activeSection = window.activeSection || 'metrics-h2'; // Default to metrics if none set
+        updateChartForSection(activeSection);
+    }
+
 }
 
 /* -------------------------------------------------------------
