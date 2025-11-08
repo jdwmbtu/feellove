@@ -1289,6 +1289,7 @@ function updateSummaryTable(store, month) {
 
     const monthIndex = ['January','February','March','April','May','June','July','August','September','October','November','December'].indexOf(month);
     const totalDays = new Date(2025, monthIndex + 1, 0).getDate();
+    
 
     // === Skip targets for past months ===
     const now = new Date();
@@ -1474,6 +1475,16 @@ function updateChartForSummaryRow(rowKey) {
             return;
         }
         const totalDays = new Date(2025, monthIndex + 1, 0).getDate();
+        let totalDaysEffective = totalDays;
+let adjMonthIndex = -1;
+let adjYear = year;
+let adjDate = null;
+if (!is2025 && isAdjusted) {
+    totalDaysEffective = totalDays + 1;
+    adjMonthIndex = (monthIndex + 1) % 12;
+    adjYear = monthIndex === 11 ? year + 1 : year;
+    adjDate = new Date(adjYear, adjMonthIndex, 1);
+}
         const isAdjusted = document.getElementById('adjusted-toggle').checked || false;
         const currentDate = new Date('2025-11-08'); // Fixed for demo
         const isPastMonth = currentDate > new Date(2025, monthIndex + 1, 0);
@@ -1494,15 +1505,20 @@ function updateChartForSummaryRow(rowKey) {
             dayData2025[d] = { sales: 0, orders: 0 };
 
             // 2024 sales/orders
-            netsalesData.forEach(row => {
-                const rowDate = new Date(row[2]);
-                if (rowDate.getFullYear() === 2024 && rowDate.toLocaleString('en-US', { month: 'long' }) === month && rowDate.getDate() === d) {
-                    const salesVal = row[storeColumns[store]];
-                    dayData2024[d].sales = parseFloat(salesVal?.toString().replace(/[^0-9.-]+/g, '') || 0);
-                    const orderRow = ordersData.find(o => new Date(o[2]).getTime() === rowDate.getTime());
-                    dayData2024[d].orders = parseFloat(orderRow?.[storeColumns[store]] || 0);
-                }
-            });
+            // 2024 sales/orders
+let fetchDate = new Date(year, monthIndex, d);
+if (!is2025 && isAdjusted && d > totalDays) {
+    fetchDate = adjDate;
+}
+netsalesData.forEach(row => {
+    const rowDate = new Date(row[2]);
+    if (rowDate.getTime() === fetchDate.getTime()) {
+        const salesVal = row[storeColumns[store]];
+        dayData2024[d].sales = parseFloat(salesVal?.toString().replace(/[^0-9.-]+/g, '') || 0);
+        const orderRow = ordersData.find(o => new Date(o[2]).getTime() === fetchDate.getTime());
+        dayData2024[d].orders = parseFloat(orderRow?.[storeColumns[store]] || 0);
+    }
+});
 
             // 2025 sales/orders
             netsalesData.forEach(row => {
@@ -1552,42 +1568,31 @@ function updateChartForSummaryRow(rowKey) {
                     if (currentWeek > 0) {
                         html += '<td style="border: 1px solid #ddd; padding: 2px; height: 40px; vertical-align: top; background: #f9f9f9;"></td>';
                         currentWeek--;
-                    } else if (day > totalDays) {
+                    } else if (day > totalDaysEffective) {
                         html += '<td style="border: 1px solid #ddd; padding: 2px; height: 40px; vertical-align: top; background: #f0f0f0;"></td>';
                     } else {
-                        const salesK = (dayData[day].sales / 1000).toFixed(1);
-                        const orders = dayData[day].orders;
-                        const hasData = dayData[day].sales > 0;
-                        const dayStr = day.toString();
-                        let cellStyle = 'border: 1px solid #ddd; padding: 2px; height: 40px; vertical-align: top;';
-                        let content = `<div style="font-weight: ${hasData ? 'bold' : 'normal'};">${dayStr}</div>`;
-
-                        // Background/Outline logic
-                        const inElapsed = day >= elapsedStart && day <= elapsedEnd;
-                        if (inElapsed) {
-                            cellStyle += ' background-color: #d4edda;'; // Light green
-                        } else if (day > elapsedEnd) {
-                            cellStyle += ' background-color: #f8f9fa;'; // Light gray
-                        }
-
-                        // Current Day (2025 only, not for past months) - no marker or outline
-                        // No action for current day
-
-                        // Next Day (2025 only, skip for past months) - outline here
-                        if (is2025 && !isPastMonth && day === nextDay2025.getDate() && !isMonthComplete) {
-                            cellStyle += ' border: 2px solid #28a745 !important; background-color: #fff3cd !important;'; // Yellow bg + Green outline
-                        }
-
-                        // Metrics
-                        if (dayData[day].sales > 0 || orders > 0) {
-                            content += `<div style="font-size: 0.7em; line-height: 1.1;">
-                                <small>$${salesK}K</small><br>
-                                <small>${orders || ''}</small>
-                            </div>`;
-                        }
-
-                        html += `<td style="${cellStyle}" title="Sales: $${dayData[day].sales.toLocaleString()} | Orders: ${orders}">${content}</td>`;
-                        day++;
+                        
+                        
+                        
+                       let dayLabel = day.toString();
+let titleDate = `${month} ${day} ${year}`;
+if (!is2025 && isAdjusted && day > totalDays) {
+    const adjMonthShort = adjDate.toLocaleDateString('en-US', { month: 'short' });
+    dayLabel = `${adjMonthShort} 1 (adj.)`;
+    titleDate = `${adjMonthShort} 1, ${adjYear}`;
+}
+const salesK = (dayData[day].sales / 1000).toFixed(1);
+const orders = dayData[day].orders;
+const hasData = dayData[day].sales > 0 || orders > 0;
+content = `<div style="font-weight: ${hasData ? 'bold' : 'normal'};">${dayLabel}</div>`;
+if (hasData) {
+    content += `<div style="font-size: 0.7em; line-height: 1.1;">
+        <small>$${salesK}K</small><br>
+        <small>${orders || ''}</small>
+    </div>`;
+}
+html += `<td style="${cellStyle}" title="${titleDate}: Sales $${dayData[day].sales.toLocaleString()} | Orders: ${orders}">${content}</td>`;
+day++;
                     }
                 }
                 html += '</tr>';
