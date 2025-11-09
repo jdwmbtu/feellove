@@ -208,6 +208,10 @@ if (window.activeView === 'next-day') {
 if (window.activeView === 'mtd-growth') {
     updateChartForSummaryRow('mtd-growth');
 }
+// Refresh Remaining Target view if active
+if (window.activeView === 'remaining-target') {
+    updateChartForSummaryRow('remaining-target');
+}
 
 }
 
@@ -1362,6 +1366,13 @@ function updateSummaryTable(store, month) {
             <td style="text-align:center; padding:6px; font-weight:500;">${value}</td>
             <td style="padding:3px; color:#666; font-size: small; font-style:italic;">${source}</td>
         `;
+    } else if (metric === "Remaining to Target ($)") {
+    tr.innerHTML = `
+        <td onclick="updateChartForSummaryRow('remaining-target')" style="padding:3px; cursor: pointer; font-weight: bold; text-decoration: underline; color: #3498db;" onmouseover="this.style.textDecoration='none'; this.style.color='#2980b9';" onmouseout="this.style.textDecoration='underline'; this.style.color='#3498db';">${metric}</td>
+        <td style="text-align:center; padding:6px; font-weight:500;">${value}</td>
+        <td style="padding:3px; color:#666; font-size: small; font-style:italic;">${source}</td>
+    `;
+    
     } else {
         tr.innerHTML = `
             <td style="padding:3px;">${metric}</td>
@@ -1752,5 +1763,14 @@ const slicedCum2025 = cum2025.slice(0, cutoffDay);
         window.activeView = 'mtd-growth';
         return;
     }
+    if (rowKey === 'remaining-target') {
+    console.log('Remaining Target chart clicked - placeholder');
+    const container = document.getElementById('chart-container');
+    if (container) {
+        container.innerHTML = '<p style="text-align:center; color:#666;">Remaining Target column chart coming soon...</p>';
+    }
+    window.activeView = 'remaining-target';
+    return;
+}
     // For other rows, extend similarly (e.g., if (rowKey === 'mtd-growth') { ... })
 }
