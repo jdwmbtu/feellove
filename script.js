@@ -1615,6 +1615,7 @@ if (canvas) canvas.style.display = 'none';
         });
         html += '</div>';
         container.innerHTML = html;
+        window.activeView = 'next-day';
     }
     // For other rows, extend similarly (e.g., if (rowKey === 'mtd-growth') { ... })
 }
