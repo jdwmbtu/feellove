@@ -1474,7 +1474,7 @@ function updateChartForSummaryRow(rowKey) {
 const canvas = document.getElementById('dynamic-chart');
 if (canvas) canvas.style.display = 'none';    if (!container || rowKey !== 'next-day') return;
     // Hide canvas, show HTML mode
-    canvas.style.display = 'none';
+if (canvas) canvas.style.display = 'none';
     container.style.display = 'block';
     if (rowKey === 'next-day') {
         // Get month details
