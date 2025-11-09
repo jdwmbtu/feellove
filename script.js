@@ -963,6 +963,7 @@ function updateChartForSection(sectionId) {
     let canvas = document.getElementById('dynamic-chart');
     const container = document.getElementById('chart-container');
     if (!container) return; // Safety check
+    if (container) container.innerHTML = ''; // Clear old content before Chart.js rebuild
     // Ensure canvas exists; recreate if missing (e.g., after HTML view)
 if (!canvas) {
     const newCanvas = document.createElement('canvas');
