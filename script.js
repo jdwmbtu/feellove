@@ -1017,7 +1017,6 @@ case 'forecast-h2':
     const data2024 = forecastData.mtd2024 + forecastData.rom2024;
     const dataTarget = forecastData.mtdTarget + forecastData.romTarget;
     const data2025 = forecastData.mtd2025 + forecastData.rom2025;
-    labels = labels;
     datasets = [{
         label: 'Full Month Total ($)',
         data: [data2024, dataTarget, data2025],
