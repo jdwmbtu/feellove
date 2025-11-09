@@ -1527,8 +1527,7 @@ function updateChartForSummaryRow(rowKey) {
     const container = document.getElementById('chart-container');
     const canvas = document.getElementById('dynamic-chart');
     if (canvas) canvas.style.display = 'none';
-    if (!container || (rowKey !== 'next-day' && rowKey !== 'mtd-growth')) return;
-    // Hide canvas, show HTML mode
+if (!container || (rowKey !== 'next-day' && rowKey !== 'mtd-growth' && rowKey !== 'remaining-target')) return;    // Hide canvas, show HTML mode
     if (canvas) canvas.style.display = 'none';
     container.style.display = 'block';
     if (rowKey === 'next-day') {
