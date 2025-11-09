@@ -1102,12 +1102,15 @@ function updateChartForSection(sectionId) {
 window.onload = () => {
     // Add click listeners for sections
     const sections = ['forecast-h2', 'scenarios-h2', 'seven-day-h2', 'metrics-h2', 'daycount-h2'];
-    sections.forEach(id => {
-        const el = document.getElementById(id);
-        if (el) {
-            el.addEventListener('click', () => updateChartForSection(id));
-        }
-    });
+sections.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) {
+        el.addEventListener('click', () => {
+            console.log('Section clicked:', id); // Temp log
+            updateChartForSection(id);
+        });
+    }
+});
         // Add change listeners for filters/toggles
     const monthFilter = document.getElementById('month-filter');
     if (monthFilter) monthFilter.addEventListener('change', updateTables);
