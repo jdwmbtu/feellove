@@ -187,6 +187,7 @@ async function refreshAndUpdateForecast() {
    MAIN UPDATE
    ------------------------------------------------------------- */
 function updateTables() {
+    console.log('updateTables called - activeSection:', window.activeSection);
     const month = document.getElementById('month-filter')?.value || '';
     const store = document.getElementById('store-filter')?.value || 'CAFE';
     isAdjusted = document.getElementById('adjusted-toggle')?.checked || false;
