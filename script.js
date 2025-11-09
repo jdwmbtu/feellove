@@ -1105,7 +1105,6 @@ case 'forecast-h2':
         options: {
             responsive: true,
             maintainAspectRatio: false,
-            indexAxis: sectionId === 'forecast-h2' ? 'y' : undefined,
             plugins: {
                 title: {
                     display: true,
