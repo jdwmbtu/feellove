@@ -960,6 +960,7 @@ if (!canvas) {
     if (!updatedCanvas) return; // Safety
     canvas = updatedCanvas;
 }
+canvas.style.display = 'block';
     const ctx = canvas.getContext('2d');
     // Destroy previous chart
     if (window.currentChart) {
