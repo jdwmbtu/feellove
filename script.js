@@ -949,6 +949,8 @@ function updateChartForSection(sectionId) {
     const store = document.getElementById('store-filter').value || 'CAFE';
     const month = document.getElementById('month-filter').value || '';
     const canvas = document.getElementById('dynamic-chart');
+    const container = document.getElementById('chart-container');
+    if (!container) return; // Safety check
     // Ensure canvas exists; recreate if missing (e.g., after HTML view)
 if (!canvas) {
     const newCanvas = document.createElement('canvas');
@@ -1103,8 +1105,7 @@ canvas.style.display = 'block';
         }
     });
     window.activeSection = sectionId;
-    document.getElementById('chart-container').style.display = 'block';
-}
+container.style.display = 'block';}
 
 /* -------------------------------------------------------------
    START – auto-select current month
