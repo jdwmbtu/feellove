@@ -206,6 +206,11 @@ if (window.currentChart) {
     console.log('Refreshing chart for:', activeSection);
     updateChartForSection(activeSection);
 }
+// Refresh Next Day view if active
+if (window.activeView === 'next-day') {
+    console.log('Refreshing Next Day view');
+    updateChartForSummaryRow('next-day');
+}
 
 }
 
