@@ -1681,6 +1681,18 @@ function updateChartForSummaryRow(rowKey) {
             cum2025.push(running2025);
         }
 
+// Calculate elapsed days for cutoff (use 2025 last data date or current if no data)
+const lastDataDate = getLastDataDate(store, month);
+const elapsedDays = lastDataDate ? lastDataDate.getDate() : new Date().getDate();
+const cutoffDay = Math.min(elapsedDays, totalDays);
+
+// Slice arrays to cutoff
+const labels = Array.from({length: cutoffDay}, (_, i) => i + 1);
+const slicedCum2024 = cum2024.slice(0, cutoffDay);
+const slicedCum2025 = cum2025.slice(0, cutoffDay);
+
+
+
         // Create line chart
         let chartCanvas = document.getElementById('dynamic-chart');
         if (!chartCanvas) {
