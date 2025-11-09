@@ -1707,11 +1707,11 @@ const slicedCum2025 = cum2025.slice(0, cutoffDay);
         window.currentChart = new Chart(ctx, {
             type: 'line',
             data: {
-                labels: Array.from({length: totalDays}, (_, i) => i + 1),
+                labels: labels,
                 datasets: [
                     {
                         label: 'Cumulative 2024',
-                        data: cum2024,
+                        data: slicedCum2024,
                         borderColor: 'rgba(54, 162, 235, 1)',
                         backgroundColor: 'rgba(54, 162, 235, 0.2)',
                         tension: 0.1,
@@ -1719,7 +1719,7 @@ const slicedCum2025 = cum2025.slice(0, cutoffDay);
                     },
                     {
                         label: 'Cumulative 2025',
-                        data: cum2025,
+                        data: slicedCum2025,
                         borderColor: 'rgba(255, 99, 132, 1)',
                         backgroundColor: 'rgba(255, 99, 132, 0.2)',
                         tension: 0.1,
