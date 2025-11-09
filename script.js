@@ -1786,10 +1786,77 @@ const slicedCum2025 = cum2025.slice(0, cutoffDay);
     }
 if (rowKey === 'remaining-target') {
     container.innerHTML = ''; // Clear any old content
-    console.log('Remaining Target chart clicked - placeholder');
-    if (container) {
-        container.innerHTML = '<p style="text-align:center; color:#666;">Remaining Target column chart coming soon...</p>';
+    const store = document.getElementById('store-filter').value || 'CAFE';
+    const month = document.getElementById('month-filter').value || '';
+    const data = calculateSalesData(store, month);
+    const totalTarget = data.mtdTarget + data.romTarget;
+    const labels = ['2024 Full Month', '2025 MTD', '2025 Remaining', '2025 Target'];
+    const datasets = [
+        {
+            label: '2024 Full Month',
+            data: [data.mtd2024 + data.rom2024, 0, 0, 0],
+            backgroundColor: 'rgba(54, 162, 235, 0.8)',
+            stack: 'stack1'
+        },
+        {
+            label: '2025 MTD',
+            data: [0, data.mtd2025, 0, 0],
+            backgroundColor: 'rgba(75, 192, 192, 0.8)',
+            stack: 'stack2'
+        },
+        {
+            label: '2025 Remaining',
+            data: [0, 0, data.rom2025, 0],
+            backgroundColor: 'rgba(255, 206, 86, 0.8)',
+            stack: 'stack2'
+        },
+        {
+            label: '2025 Target',
+            data: [0, 0, 0, totalTarget],
+            backgroundColor: 'rgba(153, 102, 255, 0.8)',
+            stack: 'stack1'
+        }
+    ];
+
+    // Create stacked bar chart
+    let chartCanvas = document.getElementById('dynamic-chart');
+    if (!chartCanvas) {
+        chartCanvas = document.createElement('canvas');
+        chartCanvas.id = 'dynamic-chart';
+        chartCanvas.width = 400;
+        chartCanvas.height = 300;
+        container.appendChild(chartCanvas);
     }
+    if (window.currentChart) window.currentChart.destroy();
+    const ctx = chartCanvas.getContext('2d');
+    window.currentChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: datasets
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                title: {
+                    display: true,
+                    text: `Remaining Target Comparison: ${month} ${store}`
+                },
+                legend: { display: true, position: 'top' }
+            },
+            scales: {
+                x: { stacked: true },
+                y: { 
+                    beginAtZero: true,
+                    stacked: true,
+                    title: { display: true, text: 'Net Sales ($)' }
+                }
+            }
+        }
+    });
+    chartCanvas.style.display = 'block';
+    container.style.display = 'block';
     window.activeView = 'remaining-target';
     return;
 }
