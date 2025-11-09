@@ -1775,8 +1775,9 @@ const slicedCum2025 = cum2025.slice(0, cutoffDay);
         return;
     }
     if (rowKey === 'remaining-target') {
+    container.innerHTML = ''; // Clear any old content
     console.log('Remaining Target chart clicked - placeholder');
-    const container = document.getElementById('chart-container');
+    const container = document.getElementById('chart-container');  // Note: This line is redundant since container is already defined outside; you can remove it if you want
     if (container) {
         container.innerHTML = '<p style="text-align:center; color:#666;">Remaining Target column chart coming soon...</p>';
     }
