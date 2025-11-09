@@ -198,6 +198,8 @@ function updateTables() {
 // Refresh current chart if active
 if (window.currentChart) {
     const activeSection = window.activeSection || 'metrics-h2';
+    const container = document.getElementById('chart-container');
+    if (container) container.innerHTML = ''; // Clear old content
     updateChartForSection(activeSection);
 }
 // Refresh Next Day view if active
