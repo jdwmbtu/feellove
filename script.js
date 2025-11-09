@@ -949,7 +949,17 @@ function updateChartForSection(sectionId) {
     const store = document.getElementById('store-filter').value || 'CAFE';
     const month = document.getElementById('month-filter').value || '';
     const canvas = document.getElementById('dynamic-chart');
-    if (!canvas) return;
+    // Ensure canvas exists; recreate if missing (e.g., after HTML view)
+if (!canvas) {
+    const newCanvas = document.createElement('canvas');
+    newCanvas.id = 'dynamic-chart';
+    newCanvas.width = 400;
+    newCanvas.height = 300;
+    container.appendChild(newCanvas);
+    const updatedCanvas = document.getElementById('dynamic-chart');
+    if (!updatedCanvas) return; // Safety
+    canvas = updatedCanvas;
+}
     const ctx = canvas.getContext('2d');
     // Destroy previous chart
     if (window.currentChart) {
