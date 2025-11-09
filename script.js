@@ -1545,7 +1545,7 @@ function updateChartForSummaryRow(rowKey) {
     const store = document.getElementById('store-filter').value || 'CAFE';
     const month = document.getElementById('month-filter').value || '';
     const container = document.getElementById('chart-container');
-    const canvas = document.getElementById('dynamic-chart');
+    let canvas = document.getElementById('dynamic-chart');
     if (canvas) canvas.style.display = 'none';
 if (!container || (rowKey !== 'next-day' && rowKey !== 'mtd-growth' && rowKey !== 'remaining-target')) return;    // Hide canvas, show HTML mode
     if (canvas) canvas.style.display = 'none';
