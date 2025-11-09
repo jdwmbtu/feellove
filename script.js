@@ -954,9 +954,6 @@ function formatPercent(v) {
     return v < 0 ? `<span class="negative">(${fmt}%)</span>` : `${fmt}%`;
 }
 
-/* -------------------------------------------------------------
-   DYNAMIC CHART UPDATE
-   ------------------------------------------------------------- */
 function updateChartForSection(sectionId) {
     const store = document.getElementById('store-filter').value || 'CAFE';
     const month = document.getElementById('month-filter').value || '';
@@ -965,17 +962,17 @@ function updateChartForSection(sectionId) {
     if (!container) return; // Safety check
     if (container) container.innerHTML = ''; // Clear old content before Chart.js rebuild
     // Ensure canvas exists; recreate if missing (e.g., after HTML view)
-if (!canvas) {
-    const newCanvas = document.createElement('canvas');
-    newCanvas.id = 'dynamic-chart';
-    newCanvas.width = 400;
-    newCanvas.height = 300;
-    container.appendChild(newCanvas);
-    const updatedCanvas = document.getElementById('dynamic-chart');
-    if (!updatedCanvas) return; // Safety
-    canvas = updatedCanvas;
-}
-canvas.style.display = 'block';
+    if (!canvas) {
+        const newCanvas = document.createElement('canvas');
+        newCanvas.id = 'dynamic-chart';
+        newCanvas.width = 400;
+        newCanvas.height = 300;
+        container.appendChild(newCanvas);
+        const updatedCanvas = document.getElementById('dynamic-chart');
+        if (!updatedCanvas) return; // Safety
+        canvas = updatedCanvas;
+    }
+    canvas.style.display = 'block';
     const ctx = canvas.getContext('2d');
     // Destroy previous chart
     if (window.currentChart) {
@@ -1111,6 +1108,9 @@ canvas.style.display = 'block';
                 }
             },
             scales: chartType === 'bar' || chartType === 'line' ? {
+                x: {
+                    beginAtZero: true
+                },
                 y: {
                     beginAtZero: true
                 }
@@ -1118,7 +1118,8 @@ canvas.style.display = 'block';
         }
     });
     window.activeSection = sectionId;
-container.style.display = 'block';}
+    container.style.display = 'block';
+}
 
 /* -------------------------------------------------------------
    START – auto-select current month
