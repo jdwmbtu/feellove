@@ -1471,8 +1471,8 @@ function updateChartForSummaryRow(rowKey) {
     const store = document.getElementById('store-filter').value || 'CAFE';
     const month = document.getElementById('month-filter').value || '';
     const container = document.getElementById('chart-container');
-    const canvas = document.getElementById('dynamic-chart');
-    if (!container || rowKey !== 'next-day') return;
+const canvas = document.getElementById('dynamic-chart');
+if (canvas) canvas.style.display = 'none';    if (!container || rowKey !== 'next-day') return;
     // Hide canvas, show HTML mode
     canvas.style.display = 'none';
     container.style.display = 'block';
