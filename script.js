@@ -1006,18 +1006,27 @@ function updateChartForSection(sectionId) {
                 }
             ];
             break;
-        case 'forecast-h2':
-            // Doughnut chart: MTD vs ROM 2025
-            const forecastData = calculateSalesData(store, month);
-            labels = ['MTD 2025', 'ROM Forecast'];
-            datasets = [{
-                data: [forecastData.mtd2025, forecastData.rom2025],
-                backgroundColor: ['rgba(255, 99, 132, 0.5)', 'rgba(54, 162, 235, 0.5)'],
-                borderColor: ['rgba(255, 99, 132, 1)', 'rgba(54, 162, 235, 1)'],
-                borderWidth: 1
-            }];
-            chartType = 'doughnut';
-            break;
+case 'forecast-h2':
+    // Horizontal bar chart: 2024, Target, 2025 Projection
+    const forecastData = calculateSalesData(store, month);
+    const labels = [
+        `${month} 2024`,
+        `${month} Growth Target ${growthTarget}${growthType === 'dollar' ? 'K' : '%'}`, 
+        `${month} 2025`
+    ];
+    const data2024 = forecastData.mtd2024 + forecastData.rom2024;
+    const dataTarget = forecastData.mtdTarget + forecastData.romTarget;
+    const data2025 = forecastData.mtd2025 + forecastData.rom2025;
+    labels = labels;
+    datasets = [{
+        label: 'Full Month Total ($)',
+        data: [data2024, dataTarget, data2025],
+        backgroundColor: ['rgba(54, 162, 235, 0.5)', 'rgba(255, 206, 86, 0.5)', 'rgba(75, 192, 192, 0.5)'],
+        borderColor: ['rgba(54, 162, 235, 1)', 'rgba(255, 206, 86, 1)', 'rgba(75, 192, 192, 1)'],
+        borderWidth: 1
+    }];
+    chartType = 'bar';
+    break;
         case 'scenarios-h2':
             // Bar chart: Scenario ROM values
             const scenarioData = calculateSalesData(store, month);
@@ -1097,6 +1106,7 @@ function updateChartForSection(sectionId) {
         options: {
             responsive: true,
             maintainAspectRatio: false,
+            indexAxis: sectionId === 'forecast-h2' ? 'y' : undefined,
             plugins: {
                 title: {
                     display: true,
