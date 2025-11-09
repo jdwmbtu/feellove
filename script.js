@@ -38,7 +38,6 @@ async function loadSheetsData() {
         const modified = meta.result.modifiedTime;
 
         if (lastModifiedTime && lastModifiedTime === modified) {
-            console.log('Sheet unchanged – using cache');
             setStatus('Data up-to-date (cached)');
             return false;
         }
@@ -56,7 +55,6 @@ async function loadSheetsData() {
         ordersData = ordResp.result.values || [];
 
         lastModifiedTime = modified;
-        console.log('Fresh data loaded – modified:', lastModifiedTime);
 
         // Show last non-zero data date
         const lastDate = getLastDataDate(
@@ -155,7 +153,6 @@ function updateGrowthTarget() {
         growthTarget = parseFloat(value);
     }
 
-    console.log(`Growth target: ${growthTarget} ${growthType === 'dollar' ? '($K)' : '(%)'} — selected: "${text}"`);
 }
 /* -------------------------------------------------------------
    UPDATE FORECAST BUTTON
@@ -187,7 +184,6 @@ async function refreshAndUpdateForecast() {
    MAIN UPDATE
    ------------------------------------------------------------- */
 function updateTables() {
-    console.log('updateTables called - activeSection:', window.activeSection);
     const month = document.getElementById('month-filter')?.value || '';
     const store = document.getElementById('store-filter')?.value || 'CAFE';
     isAdjusted = document.getElementById('adjusted-toggle')?.checked || false;
@@ -200,15 +196,12 @@ function updateTables() {
     updateScenariosTable(store, month);
     updateSummaryTable(store, month);
 // Refresh current chart if active
-console.log('updateTables: Attempting chart refresh. Active section:', window.activeSection, 'Has currentChart?', !!window.currentChart);
 if (window.currentChart) {
     const activeSection = window.activeSection || 'metrics-h2';
-    console.log('Refreshing chart for:', activeSection);
     updateChartForSection(activeSection);
 }
 // Refresh Next Day view if active
 if (window.activeView === 'next-day') {
-    console.log('Refreshing Next Day view');
     updateChartForSummaryRow('next-day');
 }
 
@@ -389,10 +382,7 @@ function updateSevenDayPredictionTable(store, month) {
         const predictedOrders = parseInt(document.getElementById(`pred-orders-${i}`).textContent) || 0;
         const predictedSales = Math.round(predictedOrders * aov);
 
-        console.log(`Day ${i} (${dayName}):`);
-        console.log(`  Daily AOV from Metrics: ${formatNumber(aov, true)}`);
-        console.log(`  Predicted Orders: ${predictedOrders}`);
-        console.log(`  Predicted Sales: ${formatNumber(predictedSales)}`);
+ 
 
         document.getElementById(`pred-sales-${i}`).textContent = formatNumber(predictedSales);
     });
@@ -1098,7 +1088,6 @@ function updateChartForSection(sectionId) {
         }
     });
     window.activeSection = sectionId;
-    console.log('Chart activated for:', sectionId); // Temp log
     document.getElementById('chart-container').style.display = 'block';
 }
 
@@ -1112,7 +1101,6 @@ sections.forEach(id => {
     const el = document.getElementById(id);
     if (el) {
         el.addEventListener('click', () => {
-            console.log('Section clicked:', id); // Temp log
             updateChartForSection(id);
         });
     }
@@ -1120,23 +1108,19 @@ sections.forEach(id => {
 // Add change listeners for filters/toggles
 const monthFilter = document.getElementById('month-filter');
 if (monthFilter) monthFilter.addEventListener('change', () => {
-    console.log('Month dropdown changed to:', monthFilter.value);
     updateTables();
 });
 const storeFilter = document.getElementById('store-filter');
 if (storeFilter) storeFilter.addEventListener('change', () => {
-    console.log('Store dropdown changed to:', storeFilter.value);
     updateTables();
 });
 const adjustedToggle = document.getElementById('adjusted-toggle');
 if (adjustedToggle) adjustedToggle.addEventListener('change', () => {
-    console.log('Adjusted toggle changed to:', adjustedToggle.checked);
     updateTables();
 });
 const growthTargetSel = document.getElementById('growth-target');
 if (growthTargetSel) growthTargetSel.addEventListener('change', () => {
     updateGrowthTarget();
-    console.log('Growth target changed');
     updateTables();
 });
 
