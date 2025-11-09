@@ -1789,36 +1789,35 @@ if (rowKey === 'remaining-target') {
     const store = document.getElementById('store-filter').value || 'CAFE';
     const month = document.getElementById('month-filter').value || '';
     const data = calculateSalesData(store, month);
-    const totalTarget = data.mtdTarget + data.romTarget;
-    const labels = ['2024 Full Month', '2025 MTD', '2025 Remaining', '2025 Target'];
+    const overallTarget = data.mtdTarget + data.romTarget;
+    const remainingToTarget = overallTarget - data.mtd2025;
+    const total2024 = data.mtd2024 + data.rom2024;
+    const labels = ['2024 Full Month', '2025 MTD', 'Remaining to Target', '2025 Target'];
+    const remainingColor = remainingToTarget > 0 ? 'rgba(255, 206, 86, 0.8)' : (remainingToTarget < 0 ? 'rgba(255, 99, 132, 0.8)' : 'rgba(150, 150, 150, 0.8)');
     const datasets = [
         {
             label: '2024 Full Month',
-            data: [data.mtd2024 + data.rom2024, 0, 0, 0],
-            backgroundColor: 'rgba(54, 162, 235, 0.8)',
-            stack: 'stack1'
+            data: [total2024, null, null, null],
+            backgroundColor: 'rgba(54, 162, 235, 0.8)'
         },
         {
             label: '2025 MTD',
-            data: [0, data.mtd2025, 0, 0],
-            backgroundColor: 'rgba(75, 192, 192, 0.8)',
-            stack: 'stack2'
+            data: [null, data.mtd2025, null, null],
+            backgroundColor: 'rgba(75, 192, 192, 0.8)'
         },
         {
-            label: '2025 Remaining',
-            data: [0, 0, data.rom2025, 0],
-            backgroundColor: 'rgba(255, 206, 86, 0.8)',
-            stack: 'stack2'
+            label: 'Remaining to Target',
+            data: [null, null, remainingToTarget !== 0 ? [data.mtd2025, overallTarget] : null, null],
+            backgroundColor: remainingColor
         },
         {
             label: '2025 Target',
-            data: [0, 0, 0, totalTarget],
-            backgroundColor: 'rgba(153, 102, 255, 0.8)',
-            stack: 'stack1'
+            data: [null, null, null, overallTarget],
+            backgroundColor: 'rgba(153, 102, 255, 0.8)'
         }
     ];
 
-    // Create stacked bar chart
+    // Create bar chart with floating for Remaining
     let chartCanvas = document.getElementById('dynamic-chart');
     if (!chartCanvas) {
         chartCanvas = document.createElement('canvas');
@@ -1841,15 +1840,33 @@ if (rowKey === 'remaining-target') {
             plugins: {
                 title: {
                     display: true,
-                    text: `Remaining Target Comparison: ${month} ${store}`
+                    text: `Target Waterfall: ${month} ${store}`
                 },
-                legend: { display: true, position: 'top' }
+                legend: { display: true, position: 'top' },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            let label = context.dataset.label || '';
+                            if (label) {
+                                label += ': ';
+                            }
+                            if (context.parsed.y !== null) {
+                                label += formatNumber(context.parsed.y);
+                            } else if (Array.isArray(context.parsed._custom)) {
+                                const min = context.parsed._custom.min;
+                                const max = context.parsed._custom.max;
+                                label += `${formatNumber(min)} to ${formatNumber(max)} (${formatNumber(max - min)})`;
+                            }
+                            return label;
+                        }
+                    }
+                }
             },
             scales: {
-                x: { stacked: true },
+                x: { stacked: false },
                 y: { 
                     beginAtZero: true,
-                    stacked: true,
+                    stacked: false,
                     title: { display: true, text: 'Net Sales ($)' }
                 }
             }
