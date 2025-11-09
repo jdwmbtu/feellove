@@ -204,6 +204,10 @@ if (window.currentChart) {
 if (window.activeView === 'next-day') {
     updateChartForSummaryRow('next-day');
 }
+// Refresh MTD Growth view if active
+if (window.activeView === 'mtd-growth') {
+    updateChartForSummaryRow('mtd-growth');
+}
 
 }
 
@@ -1606,5 +1610,14 @@ if (canvas) canvas.style.display = 'none';
         container.innerHTML = html;
         window.activeView = 'next-day';
     }
+    if (rowKey === 'mtd-growth') {
+    console.log('MTD Growth chart clicked - placeholder');
+    const container = document.getElementById('chart-container');
+    if (container) {
+        container.innerHTML = '<p style="text-align:center; color:#666;">MTD Growth chart coming soon...</p>';
+    }
+    window.activeView = 'mtd-growth';
+    return;
+}
     // For other rows, extend similarly (e.g., if (rowKey === 'mtd-growth') { ... })
 }
