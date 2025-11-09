@@ -1621,12 +1621,101 @@ if (canvas) canvas.style.display = 'none';
         container.innerHTML = html;
         window.activeView = 'next-day';
     }
-    if (rowKey === 'mtd-growth') {
-    console.log('MTD Growth chart clicked - placeholder');
-    const container = document.getElementById('chart-container');
-    if (container) {
-        container.innerHTML = '<p style="text-align:center; color:#666;">MTD Growth chart coming soon...</p>';
+ if (rowKey === 'mtd-growth') {
+    const store = document.getElementById('store-filter').value || 'CAFE';
+    const month = document.getElementById('month-filter').value || '';
+    const monthIndex = ['January','February','March','April','May','June','July','August','September','October','November','December'].indexOf(month);
+    if (monthIndex === -1) {
+        container.innerHTML = '<p style="text-align:center; color:#666;">Select a month for MTD Growth chart.</p>';
+        window.activeView = 'mtd-growth';
+        return;
     }
+    const totalDays = new Date(2025, monthIndex + 1, 0).getDate();
+    const shift = document.getElementById('adjusted-toggle')?.checked ? 1 : 0;
+    const idx = storeColumns[store];
+
+    // Collect and sort daily sales for 2024 and 2025
+    const sales2024 = {};
+    const sales2025 = {};
+    netsalesData.forEach(row => {
+        const d = new Date(row[2]);
+        if (isNaN(d) || d.toLocaleString('en-US', { month: 'long' }) !== month) return;
+        const day = d.getDate();
+        const sales = parseFloat(row[idx]?.toString().replace(/[^0-9.-]+/g, '') || 0);
+        if (sales === 0) return;
+        const year = d.getFullYear();
+        if (year === 2024) {
+            // Apply shift for 2024
+            const adjDay = day - shift;
+            if (adjDay >= 1 && adjDay <= totalDays) {
+                sales2024[adjDay] = (sales2024[adjDay] || 0) + sales;
+            }
+        } else if (year === 2025) {
+            sales2025[day] = (sales2025[day] || 0) + sales; // 2025 no shift
+        }
+    });
+
+    // Compute cumulatives
+    const cum2024 = [];
+    const cum2025 = [];
+    let running2024 = 0;
+    let running2025 = 0;
+    for (let day = 1; day <= totalDays; day++) {
+        running2024 += sales2024[day] || 0;
+        running2025 += sales2025[day] || 0;
+        cum2024.push(running2024);
+        cum2025.push(running2025);
+    }
+
+    // Create line chart
+    const canvas = document.getElementById('dynamic-chart');
+    if (window.currentChart) window.currentChart.destroy();
+    const ctx = canvas.getContext('2d');
+    window.currentChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: Array.from({length: totalDays}, (_, i) => i + 1),
+            datasets: [
+                {
+                    label: 'Cumulative 2024',
+                    data: cum2024,
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                    tension: 0.1,
+                    fill: false
+                },
+                {
+                    label: 'Cumulative 2025',
+                    data: cum2025,
+                    borderColor: 'rgba(255, 99, 132, 1)',
+                    backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                    tension: 0.1,
+                    fill: false
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                title: {
+                    display: true,
+                    text: `MTD Cumulative Sales: ${month} ${store}`
+                },
+                legend: { display: true, position: 'top' }
+            },
+            scales: {
+                x: { title: { display: true, text: 'Day of Month' } },
+                y: { 
+                    beginAtZero: true,
+                    title: { display: true, text: 'Cumulative Net Sales ($)' }
+                }
+            }
+        }
+    });
+
+    canvas.style.display = 'block';
+    container.style.display = 'block';
     window.activeView = 'mtd-growth';
     return;
 }
