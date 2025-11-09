@@ -948,7 +948,7 @@ function formatPercent(v) {
 function updateChartForSection(sectionId) {
     const store = document.getElementById('store-filter').value || 'CAFE';
     const month = document.getElementById('month-filter').value || '';
-    const canvas = document.getElementById('dynamic-chart');
+    let canvas = document.getElementById('dynamic-chart');
     const container = document.getElementById('chart-container');
     if (!container) return; // Safety check
     // Ensure canvas exists; recreate if missing (e.g., after HTML view)
