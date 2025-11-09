@@ -1538,6 +1538,7 @@ function updateChartForSummaryRow(rowKey) {
 if (!container || (rowKey !== 'next-day' && rowKey !== 'mtd-growth' && rowKey !== 'remaining-target')) return;    // Hide canvas, show HTML mode
     if (canvas) canvas.style.display = 'none';
     container.style.display = 'block';
+    container.innerHTML = ''; // Clear old content when switching views
     if (rowKey === 'next-day') {
         // Get month details
         const monthIndex = ['January','February','March','April','May','June','July','August','September','October','November','December'].indexOf(month);
