@@ -202,14 +202,20 @@ if (window.currentChart) {
 }
 // Refresh Next Day view if active
 if (window.activeView === 'next-day') {
+    const container = document.getElementById('chart-container');
+    if (container) container.innerHTML = ''; // Clear old content
     updateChartForSummaryRow('next-day');
 }
 // Refresh MTD Growth view if active
 if (window.activeView === 'mtd-growth') {
+    const container = document.getElementById('chart-container');
+    if (container) container.innerHTML = ''; // Clear old content
     updateChartForSummaryRow('mtd-growth');
 }
 // Refresh Remaining Target view if active
 if (window.activeView === 'remaining-target') {
+    const container = document.getElementById('chart-container');
+    if (container) container.innerHTML = ''; // Clear old content
     updateChartForSummaryRow('remaining-target');
 }
 
