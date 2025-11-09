@@ -200,9 +200,10 @@ function updateTables() {
     updateScenariosTable(store, month);
     updateSummaryTable(store, month);
 // Refresh current chart if active
+console.log('updateTables: Attempting chart refresh. Active section:', window.activeSection, 'Has currentChart?', !!window.currentChart);
 if (window.currentChart) {
     const activeSection = window.activeSection || 'metrics-h2';
-    console.log('Refreshing chart for:', activeSection); // Temp log
+    console.log('Refreshing chart for:', activeSection);
     updateChartForSection(activeSection);
 }
 
@@ -1111,15 +1112,28 @@ sections.forEach(id => {
         });
     }
 });
-        // Add change listeners for filters/toggles
-    const monthFilter = document.getElementById('month-filter');
-    if (monthFilter) monthFilter.addEventListener('change', updateTables);
-    const storeFilter = document.getElementById('store-filter');
-    if (storeFilter) storeFilter.addEventListener('change', updateTables);
-    const adjustedToggle = document.getElementById('adjusted-toggle');
-    if (adjustedToggle) adjustedToggle.addEventListener('change', updateTables);
-    const growthTargetSel = document.getElementById('growth-target');
-    if (growthTargetSel) growthTargetSel.addEventListener('change', () => { updateGrowthTarget(); updateTables(); });
+// Add change listeners for filters/toggles
+const monthFilter = document.getElementById('month-filter');
+if (monthFilter) monthFilter.addEventListener('change', () => {
+    console.log('Month dropdown changed to:', monthFilter.value);
+    updateTables();
+});
+const storeFilter = document.getElementById('store-filter');
+if (storeFilter) storeFilter.addEventListener('change', () => {
+    console.log('Store dropdown changed to:', storeFilter.value);
+    updateTables();
+});
+const adjustedToggle = document.getElementById('adjusted-toggle');
+if (adjustedToggle) adjustedToggle.addEventListener('change', () => {
+    console.log('Adjusted toggle changed to:', adjustedToggle.checked);
+    updateTables();
+});
+const growthTargetSel = document.getElementById('growth-target');
+if (growthTargetSel) growthTargetSel.addEventListener('change', () => {
+    updateGrowthTarget();
+    console.log('Growth target changed');
+    updateTables();
+});
 
     gapi.load('client', () => {
         gapi.client.init({ apiKey: API_KEY, discoveryDocs: DISCOVERY_DOCS })
