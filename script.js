@@ -949,18 +949,14 @@ function updateChartForSection(sectionId) {
     const month = document.getElementById('month-filter').value || '';
     const canvas = document.getElementById('dynamic-chart');
     if (!canvas) return;
-
     const ctx = canvas.getContext('2d');
-
     // Destroy previous chart
     if (window.currentChart) {
         window.currentChart.destroy();
     }
-
     let chartType = 'bar';
     let labels = [];
     let datasets = [];
-
     switch (sectionId) {
         case 'metrics-h2':
             // Bar chart: Sales 2024 vs 2025 by day of week
@@ -986,7 +982,6 @@ function updateChartForSection(sectionId) {
                 }
             ];
             break;
-
         case 'forecast-h2':
             // Doughnut chart: MTD vs ROM 2025
             const forecastData = calculateSalesData(store, month);
@@ -999,7 +994,6 @@ function updateChartForSection(sectionId) {
             }];
             chartType = 'doughnut';
             break;
-
         case 'scenarios-h2':
             // Bar chart: Scenario ROM values
             const scenarioData = calculateSalesData(store, month);
@@ -1017,7 +1011,6 @@ function updateChartForSection(sectionId) {
                 borderWidth: 1
             }];
             break;
-
         case 'seven-day-h2':
             // Line chart: Predicted sales and orders next 7 days
             const days7 = window.predictionDates || [];
@@ -1051,7 +1044,6 @@ function updateChartForSection(sectionId) {
             ];
             chartType = 'line';
             break;
-
         case 'daycount-h2':
             // Pie chart: Weekdays vs Weekends (2025 Remaining)
             const daycountData = updateDayCountTable(store, month); // Note: This function populates table, but we can extract logic
@@ -1068,12 +1060,10 @@ function updateChartForSection(sectionId) {
             }];
             chartType = 'pie';
             break;
-
         default:
             document.getElementById('chart-container').style.display = 'none';
             return;
     }
-
     window.currentChart = new Chart(ctx, {
         type: chartType,
         data: {
@@ -1100,7 +1090,8 @@ function updateChartForSection(sectionId) {
             } : undefined
         }
     });
-
+    window.activeSection = sectionId;
+    console.log('Chart activated for:', sectionId); // Temp log
     document.getElementById('chart-container').style.display = 'block';
 }
 
