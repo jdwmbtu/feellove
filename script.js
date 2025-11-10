@@ -969,8 +969,10 @@ if (!canvas) {
     newCanvas.height = 300;
     container.appendChild(newCanvas);
     const updatedCanvas = document.getElementById('dynamic-chart');
-    if (!updatedCanvas) return; // Safety
     canvas = updatedCanvas;
+    container.offsetHeight; // Force reflow to ensure DOM is ready for Chart.js
+    if (!updatedCanvas) return; // Safety
+
 } else {
     // Only clear if canvas already existed (for refresh)
     container.innerHTML = '';
