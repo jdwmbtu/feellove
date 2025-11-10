@@ -1060,7 +1060,7 @@ const ordersPred = days7.map((_, i) => {
 });
 datasets = [
     {
-        type: 'line',  // Line for Sales
+        type: 'bar',  // Line for Sales
         label: 'Predicted Sales ($)',
         data: salesPred,
         borderColor: 'rgba(75, 192, 192, 1)',
@@ -1070,7 +1070,7 @@ datasets = [
         yAxisID: 'y'  // Left axis
     },
     {
-        type: 'bar',  // Bars for Orders
+        type: 'line',  // Bars for Orders
         label: 'Predicted Orders',
         data: ordersPred,
         backgroundColor: 'rgba(255, 99, 132, 0.6)',  // Solid for bars
