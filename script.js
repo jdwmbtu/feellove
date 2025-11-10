@@ -1007,23 +1007,25 @@ function updateChartForSection(sectionId) {
             ];
             break;
 case 'forecast-h2':
-    // Vertical bar chart: 2024, Target, 2025 full month totals
+    // Grouped bar chart: MTD and ROM for 2024, Target, 2025
     const forecastData = calculateSalesData(store, month);
-    labels = [
-        `${month} 2024`,
-        `${month} Growth Target ${growthTarget}${growthType === 'dollar' ? 'K' : '%'}`, 
-        `${month} 2025`
+    labels = ['2024', 'Target', '2025'];
+    datasets = [
+        {
+            label: 'MTD ($)',
+            data: [forecastData.mtd2024, forecastData.mtdTarget, forecastData.mtd2025],
+            backgroundColor: 'rgba(54, 162, 235, 0.8)',
+            borderColor: 'rgba(54, 162, 235, 1)',
+            borderWidth: 1
+        },
+        {
+            label: 'ROM ($)',
+            data: [forecastData.rom2024, forecastData.romTarget, forecastData.rom2025],
+            backgroundColor: 'rgba(255, 159, 64, 0.8)',
+            borderColor: 'rgba(255, 159, 64, 1)',
+            borderWidth: 1
+        }
     ];
-    const data2024 = forecastData.mtd2024 + forecastData.rom2024;
-    const dataTarget = forecastData.mtdTarget + forecastData.romTarget;
-    const data2025 = forecastData.mtd2025 + forecastData.rom2025;
-    datasets = [{
-        label: 'Full Month Total ($)',
-        data: [data2024, dataTarget, data2025],
-        backgroundColor: ['rgba(54, 162, 235, 0.8)', 'rgba(255, 206, 86, 0.8)', 'rgba(75, 192, 192, 0.8)'],
-        borderColor: ['rgba(54, 162, 235, 1)', 'rgba(255, 206, 86, 1)', 'rgba(75, 192, 192, 1)'],
-        borderWidth: 1
-    }];
     chartType = 'bar';
     break;
         case 'scenarios-h2':
