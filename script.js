@@ -1119,14 +1119,38 @@ datasets = [
                     position: 'top'
                 }
             },
-            scales: chartType === 'bar' || chartType === 'line' ? {
-                x: {
-                    beginAtZero: true
-                },
-                y: {
-                    beginAtZero: true
-                }
-            } : undefined
+  scales: {
+    x: {
+        beginAtZero: true
+    },
+    y: {  // Left axis (always for sales/bars)
+        type: 'linear',
+        display: true,
+        position: 'left',
+        beginAtZero: true,
+        ...(sectionId === 'seven-day-h2' ? {
+            title: {
+                display: true,
+                text: 'Net Sales ($)'
+            }
+        } : {})
+    },
+    ...(sectionId === 'seven-day-h2' ? {
+        y1: {  // Right axis (Orders, only for seven-day)
+            type: 'linear',
+            display: true,
+            position: 'right',
+            beginAtZero: true,
+            title: {
+                display: true,
+                text: 'Orders'
+            },
+            grid: {
+                drawOnChartArea: false  // No overlapping grids
+            }
+        }
+    } : {})
+}
         }
     });
     console.log(`Chart created for ${sectionId}:`, window.currentChart);
