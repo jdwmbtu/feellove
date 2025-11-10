@@ -1079,7 +1079,6 @@ datasets = [
         yAxisID: 'y1'  // Right axis for orders
     }
 ];
-            chartType = 'line';
             break;
         case 'daycount-h2':
             // Pie chart: Weekdays vs Weekends (2025 Remaining)
