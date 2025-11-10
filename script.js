@@ -1832,7 +1832,8 @@ if (rowKey === 'remaining-target') {
     const overallTarget = data.mtdTarget + data.romTarget;
     const remainingToTarget = overallTarget - data.mtd2025;
     const total2024 = data.mtd2024 + data.rom2024;
-    const labels = ['2024', '2025'];
+    const remainingColor = remainingToTarget > 0 ? 'rgba(255, 206, 86, 0.8)' : (remainingToTarget < 0 ? 'rgba(255, 99, 132, 0.8)' : 'rgba(150, 150, 150, 0.8)');
+   const labels = ['2024', '2025'];
 const datasets = [
     {
         label: '2024 Full Month',
