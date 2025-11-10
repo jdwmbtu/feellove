@@ -1049,7 +1049,6 @@ case 'forecast-h2':
             // Line chart: Predicted sales and orders next 7 days
             const days7 = window.predictionDates || [];
             if (days7.length === 0) return;
-            chartType = 'line';
 labels = days7.map(d => d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }));
 const salesPred = days7.map((_, i) => {
     const el = document.getElementById(`pred-sales-${i}`);
@@ -1061,22 +1060,23 @@ const ordersPred = days7.map((_, i) => {
 });
 datasets = [
     {
+        type: 'line',  // Line for Sales
         label: 'Predicted Sales ($)',
         data: salesPred,
         borderColor: 'rgba(75, 192, 192, 1)',
         backgroundColor: 'rgba(75, 192, 192, 0.2)',
         tension: 0.1,
         fill: false,
-        yAxisID: 'y'  // Left axis for sales
+        yAxisID: 'y'  // Left axis
     },
     {
+        type: 'bar',  // Bars for Orders
         label: 'Predicted Orders',
         data: ordersPred,
+        backgroundColor: 'rgba(255, 99, 132, 0.6)',  // Solid for bars
         borderColor: 'rgba(255, 99, 132, 1)',
-        backgroundColor: 'rgba(255, 99, 132, 0.2)',
-        tension: 0.1,
-        fill: false,
-        yAxisID: 'y1'  // Right axis for orders
+        borderWidth: 1,
+        yAxisID: 'y1'  // Right axis
     }
 ];
             break;
@@ -1137,7 +1137,7 @@ datasets = [
     },
     ...(sectionId === 'seven-day-h2' ? {
         y1: {  // Right axis (Orders, only for seven-day)
-            type: 'bar',
+            type: 'linear',
             display: true,
             position: 'right',
             beginAtZero: true,
