@@ -1140,9 +1140,8 @@ window.onload = () => {
 sections.forEach(id => {
     const el = document.getElementById(id);
     if (el) {
-        el.addEventListener('click', (e) => {
-    e.preventDefault();
-    e.stopPropagation();
+        el.addEventListener('click', () => {
+    console.log(`Section clicked: ${id} - Calling updateChartForSection`);
     updateChartForSection(id);
 });
     }
