@@ -1047,6 +1047,7 @@ console.log(`Container HTML before chart:`, container.innerHTML);
                 `${month} at ${growthTarget}${growthType === 'dollar' ? 'K' : '%'} Growth`,
                 `${month} at Current Rate ${formatPercent(mtdGrowthPct).replace('%', '')}%`
             ];
+            console.log('Labels assigned:', labels);
             datasets = [{
                 label: 'ROM ($)',
                 data: [scenarioData.rom2024, scenarioData.romTarget, scenarioData.rom2025],
@@ -1054,6 +1055,7 @@ console.log(`Container HTML before chart:`, container.innerHTML);
                 borderColor: 'rgba(75, 192, 192, 1)',
                 borderWidth: 1
             }];
+            console.log('Datasets assigned:', datasets);
             break;
         case 'seven-day-h2':
             // Line chart: Predicted sales and orders next 7 days
