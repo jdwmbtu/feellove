@@ -968,6 +968,7 @@ if (!canvas) {
     newCanvas.width = 400;
     newCanvas.height = 300;
     container.appendChild(newCanvas);
+    console.log('Canvas appended, now in DOM?', !!document.getElementById('dynamic-chart'));
     const updatedCanvas = document.getElementById('dynamic-chart');
     canvas = updatedCanvas;
     container.offsetHeight; // Force reflow to ensure DOM is ready for Chart.js
