@@ -1102,9 +1102,11 @@ datasets = [
     }
 ];
             break;
-case 'daycount-h2':
-    // Pie chart: Weekdays vs Weekends (2025 Remaining)
-    const categories = ['Weekdays Remaining', 'Weekends Remaining'];
+ccase 'daycount-h2':
+    // Bar chart: 2024 vs 2025 Day Counts (Weekdays/Weekends)
+    const categories = ['Weekdays', 'Weekends'];
+    let lastYearWeekdays = 0, lastYearWeekends = 0;
+    let elapsedWeekdays = 0, elapsedWeekends = 0;
     let remainingWeekdays = 0, remainingWeekends = 0;
     let lastRecordedDate = null;
     // Extract from table logic
@@ -1115,20 +1117,19 @@ case 'daycount-h2':
         if (month && rowMonth !== month) return;
         const value = row[storeColumns[store]];
         if (!value || value.toString().trim() === '') return;
-        if (date.getFullYear() === 2025) {
+        const year = date.getFullYear();
+        const dayIndex = date.getDay();
+        if (year === 2024) {
+            if (dayIndex >= 1 && dayIndex <= 5) lastYearWeekdays++;
+            else lastYearWeekends++;
+        } else if (year === 2025) {
+            if (dayIndex >= 1 && dayIndex <= 5) elapsedWeekdays++;
+            else elapsedWeekends++;
             if (!lastRecordedDate || date > lastRecordedDate) lastRecordedDate = date;
         }
     });
-    if (month && lastRecordedDate) {
-        const monthIndex = ['January','February','March','April','May','June','July','August','September','October','November','December'].indexOf(month);
-        const lastDayOfMonth = new Date(2025, monthIndex + 1, 0).getDate();
-        for (let d = lastRecordedDate.getDate() + 1; d <= lastDayOfMonth; d++) {
-            const date = new Date(2025, monthIndex, d);
-            const dayIndex = date.getDay();
-            if (dayIndex >= 1 && dayIndex <= 5) remainingWeekdays++;
-            else remainingWeekends++;
-        }
-    } else if (month) {
+    // Calculate remaining for 2025
+    if (month && !lastRecordedDate) {
         const monthIndex = ['January','February','March','April','May','June','July','August','September','October','November','December'].indexOf(month);
         const lastDayOfMonth = new Date(2025, monthIndex + 1, 0).getDate();
         for (let d = 1; d <= lastDayOfMonth; d++) {
@@ -1137,15 +1138,36 @@ case 'daycount-h2':
             if (dayIndex >= 1 && dayIndex <= 5) remainingWeekdays++;
             else remainingWeekends++;
         }
+    } else if (month && lastRecordedDate) {
+        const monthIndex = ['January','February','March','April','May','June','July','August','September','October','November','December'].indexOf(month);
+        const lastDayOfMonth = new Date(2025, monthIndex + 1, 0).getDate();
+        for (let d = lastRecordedDate.getDate() + 1; d <= lastDayOfMonth; d++) {
+            const date = new Date(2025, monthIndex, d);
+            const dayIndex = date.getDay();
+            if (dayIndex >= 1 && dayIndex <= 5) remainingWeekdays++;
+            else remainingWeekends++;
+        }
     }
+    const total2025Weekdays = elapsedWeekdays + remainingWeekdays;
+    const total2025Weekends = elapsedWeekends + remainingWeekends;
     labels = categories;
-    datasets = [{
-        data: [remainingWeekdays, remainingWeekends],
-        backgroundColor: ['rgba(54, 162, 235, 0.5)', 'rgba(255, 206, 86, 0.5)'],
-        borderColor: ['rgba(54, 162, 235, 1)', 'rgba(255, 206, 86, 1)'],
-        borderWidth: 1
-    }];
-    chartType = 'pie';
+    datasets = [
+        {
+            label: '2024 Counts',
+            data: [lastYearWeekdays, lastYearWeekends],
+            backgroundColor: 'rgba(54, 162, 235, 0.5)',
+            borderColor: 'rgba(54, 162, 235, 1)',
+            borderWidth: 1
+        },
+        {
+            label: '2025 Projected Total',
+            data: [total2025Weekdays, total2025Weekends],
+            backgroundColor: 'rgba(255, 99, 132, 0.5)',
+            borderColor: 'rgba(255, 99, 132, 1)',
+            borderWidth: 1
+        }
+    ];
+    chartType = 'bar';
     break;
         default:
             document.getElementById('chart-container').style.display = 'none';
