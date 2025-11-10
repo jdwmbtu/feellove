@@ -1885,20 +1885,20 @@ if (rowKey === 'remaining-target') {
                 legend: { display: true, position: 'top' },
                 tooltip: {
                     callbacks: {
-                        label: function(context) {
-                            let label = context.dataset.label || '';
-                            if (label) {
-                                label += ': ';
-                            }
-                            if (context.parsed.y !== null) {
-                                label += formatNumber(context.parsed.y);
-                            } else if (Array.isArray(context.parsed._custom)) {
-                                const min = context.parsed._custom.min;
-                                const max = context.parsed._custom.max;
-                                label += `${formatNumber(min)} to ${formatNumber(max)} (${formatNumber(max - min)})`;
-                            }
-                            return label;
-                        }
+                       label: function(context) {
+    let label = context.dataset.label || '';
+    if (label) {
+        label += ': ';
+    }
+    if (context.parsed.y !== null) {
+        if (context.dataset.label === 'Remaining to Target') {
+            label += formatNumber(context.parsed.y);  // Just the difference value
+        } else {
+            label += formatNumber(context.parsed.y);
+        }
+    }
+    return label;
+}
                     }
                 }
             },
