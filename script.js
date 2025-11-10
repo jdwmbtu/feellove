@@ -10,6 +10,7 @@ let growthTarget = 10;
 let growthType = 'percent';
 let isAdjusted = true;
 let lastModifiedTime = null;
+let currentMetricsView = 'sales';  // Default view
 
 /* -------------------------------------------------------------
    INITIAL LOAD
