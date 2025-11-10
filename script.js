@@ -1049,33 +1049,36 @@ case 'forecast-h2':
             // Line chart: Predicted sales and orders next 7 days
             const days7 = window.predictionDates || [];
             if (days7.length === 0) return;
-            labels = days7.map(d => d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }));
-            const salesPred = days7.map((_, i) => {
-                const el = document.getElementById(`pred-sales-${i}`);
-                return el ? parseFloat(el.textContent.replace(/[^0-9.-]+/g, '')) || 0 : 0;
-            });
-            const ordersPred = days7.map((_, i) => {
-                const el = document.getElementById(`pred-orders-${i}`);
-                return parseInt(el ? el.textContent : '0') || 0;
-            });
-            datasets = [
-                {
-                    label: 'Predicted Sales ($)',
-                    data: salesPred,
-                    borderColor: 'rgba(75, 192, 192, 1)',
-                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
-                    tension: 0.1,
-                    fill: false
-                },
-                {
-                    label: 'Predicted Orders',
-                    data: ordersPred,
-                    borderColor: 'rgba(255, 99, 132, 1)',
-                    backgroundColor: 'rgba(255, 99, 132, 0.2)',
-                    tension: 0.1,
-                    fill: false
-                }
-            ];
+            chartType = 'line';
+labels = days7.map(d => d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }));
+const salesPred = days7.map((_, i) => {
+    const el = document.getElementById(`pred-sales-${i}`);
+    return el ? parseFloat(el.textContent.replace(/[^0-9.-]+/g, '')) || 0 : 0;
+});
+const ordersPred = days7.map((_, i) => {
+    const el = document.getElementById(`pred-orders-${i}`);
+    return parseInt(el ? el.textContent : '0') || 0;
+});
+datasets = [
+    {
+        label: 'Predicted Sales ($)',
+        data: salesPred,
+        borderColor: 'rgba(75, 192, 192, 1)',
+        backgroundColor: 'rgba(75, 192, 192, 0.2)',
+        tension: 0.1,
+        fill: false,
+        yAxisID: 'y'  // Left axis for sales
+    },
+    {
+        label: 'Predicted Orders',
+        data: ordersPred,
+        borderColor: 'rgba(255, 99, 132, 1)',
+        backgroundColor: 'rgba(255, 99, 132, 0.2)',
+        tension: 0.1,
+        fill: false,
+        yAxisID: 'y1'  // Right axis for orders
+    }
+];
             chartType = 'line';
             break;
         case 'daycount-h2':
