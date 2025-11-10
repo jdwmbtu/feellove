@@ -1037,6 +1037,10 @@ case 'forecast-h2':
         case 'scenarios-h2':
             // Bar chart: Scenario ROM values
             const scenarioData = calculateSalesData(store, month);
+            console.log(`Scenarios data:`, scenarioData);
+console.log(`Labels:`, labels);
+console.log(`Datasets data:`, datasets.map(ds => ds.data));
+console.log(`Container HTML before chart:`, container.innerHTML);
             const mtdGrowthPct = scenarioData.mtd2024 > 0 ? ((scenarioData.mtd2025 / scenarioData.mtd2024) - 1) * 100 : 0;
             labels = [
                 `${month} 2024 Repeats`,
