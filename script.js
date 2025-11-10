@@ -1102,7 +1102,7 @@ datasets = [
     }
 ];
             break;
-ccase 'daycount-h2':
+case 'daycount-h2':
     // Bar chart: 2024 vs 2025 Day Counts (Weekdays/Weekends)
     const categories = ['Weekdays', 'Weekends'];
     let lastYearWeekdays = 0, lastYearWeekends = 0;
