@@ -1214,30 +1214,27 @@ if (growthTargetSel) growthTargetSel.addEventListener('change', () => {
     updateGrowthTarget();
     updateTables();
 });
-// Add sub-view toggles for metrics chart
-const metricsSubHeaders = document.getElementById('metrics-sub-headers');
-if (metricsSubHeaders) {
-    metricsSubHeaders.innerHTML = `
-        <button id="metrics-sales-btn" class="sub-view-btn active">Sales</button>
-        <button id="metrics-orders-btn" class="sub-view-btn">Orders</button>
-        <button id="metrics-aov-btn" class="sub-view-btn">AOV</button>
-    `;
-    ['sales', 'orders', 'aov'].forEach(view => {
-        const btn = document.getElementById(`metrics-${view}-btn`);
-        if (btn) {
-            btn.addEventListener('click', () => {
-                // Update active class
-                document.querySelectorAll('.sub-view-btn').forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
-                // Set global and refresh chart
-                currentMetricsSubView = view;
-                if (window.activeSection === 'metrics-h2') {
-                    updateChartForSection('metrics-h2');
-                }
+// Add click listeners for metrics sub-headers
+['sales', 'orders', 'aov'].forEach(view => {
+    const header = document.getElementById(`${view}-header`);
+    if (header) {
+        header.style.cursor = 'pointer';
+        header.addEventListener('click', () => {
+            // Update active class (add underline or style)
+            document.querySelectorAll('#metrics-table th[colspan="4"]').forEach(h => {
+                h.style.textDecoration = 'none';
+                h.style.color = '#333';
             });
-        }
-    });
-}
+            header.style.textDecoration = 'underline';
+            header.style.color = '#3498db';
+            // Set global and refresh chart
+            currentMetricsSubView = view;
+            if (window.activeSection === 'metrics-h2') {
+                updateChartForSection('metrics-h2');
+            }
+        });
+    }
+});
 
     gapi.load('client', () => {
         gapi.client.init({ apiKey: API_KEY, discoveryDocs: DISCOVERY_DOCS })
