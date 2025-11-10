@@ -190,7 +190,7 @@ function updateTables() {
     isAdjusted = document.getElementById('adjusted-toggle')?.checked || false;
 
     const avgs = calculateAverages(store, month);
-    updateCombinedMetricsTable(store, month);
+updateCombinedMetricsTable(store, month, currentMetricsView);
     updateSevenDayPredictionTable(store, month);  // NEW
     updateDayCountTable(store, month);
     updateForecastTable(store, month);
