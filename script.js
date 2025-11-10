@@ -1137,7 +1137,7 @@ datasets = [
     },
     ...(sectionId === 'seven-day-h2' ? {
         y1: {  // Right axis (Orders, only for seven-day)
-            type: 'linear',
+            type: 'bar',
             display: true,
             position: 'right',
             beginAtZero: true,
