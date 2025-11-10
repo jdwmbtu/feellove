@@ -10,6 +10,7 @@ let growthTarget = 10;
 let growthType = 'percent';
 let isAdjusted = true;
 let lastModifiedTime = null;
+let currentMetricsSubView = 'sales';  // Default sub-view
 
 
 /* -------------------------------------------------------------
@@ -983,29 +984,49 @@ const ctx = canvas.getContext('2d');
     let datasets = [];
     switch (sectionId) {
         case 'metrics-h2':
-            // Bar chart: Sales 2024 vs 2025 by day of week
-            const avgs = calculateAverages(store, month);
-            const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
-            const sales2024 = days.map(d => avgs.salesAverages2024[d].length ? Math.round(avgs.salesAverages2024[d].reduce((a, b) => a + b, 0) / avgs.salesAverages2024[d].length) : 0);
-            const sales2025 = days.map(d => avgs.salesAverages2025[d].length ? Math.round(avgs.salesAverages2025[d].reduce((a, b) => a + b, 0) / avgs.salesAverages2025[d].length) : 0);
-            labels = days;
-            datasets = [
-                {
-                    label: 'Sales 2024',
-                    data: sales2024,
-                    backgroundColor: 'rgba(54, 162, 235, 0.5)',
-                    borderColor: 'rgba(54, 162, 235, 1)',
-                    borderWidth: 1
-                },
-                {
-                    label: 'Sales 2025',
-                    data: sales2025,
-                    backgroundColor: 'rgba(255, 99, 132, 0.5)',
-                    borderColor: 'rgba(255, 99, 132, 1)',
-                    borderWidth: 1
-                }
-            ];
-            break;
+    // Bar chart: 2024 vs 2025 by day of week (Sales/Orders/AOV based on sub-view)
+    const avgs = calculateAverages(store, month);
+    const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+    let data2024 = [], data2025 = [], subViewTitle = '';
+    if (currentMetricsSubView === 'orders') {
+        data2024 = days.map(d => avgs.ordersAverages2024[d].length ? Math.round(avgs.ordersAverages2024[d].reduce((a, b) => a + b, 0) / avgs.ordersAverages2024[d].length) : 0);
+        data2025 = days.map(d => avgs.ordersAverages2025[d].length ? Math.round(avgs.ordersAverages2025[d].reduce((a, b) => a + b, 0) / avgs.ordersAverages2025[d].length) : 0);
+        subViewTitle = 'Orders';
+    } else if (currentMetricsSubView === 'aov') {
+        data2024 = days.map(d => {
+            const s24 = avgs.salesAverages2024[d].length ? Math.round(avgs.salesAverages2024[d].reduce((a, b) => a + b, 0) / avgs.salesAverages2024[d].length) : 0;
+            const o24 = avgs.ordersAverages2024[d].length ? Math.round(avgs.ordersAverages2024[d].reduce((a, b) => a + b, 0) / avgs.ordersAverages2024[d].length) : 0;
+            return o24 > 0 ? (s24 / o24).toFixed(2) : 0;
+        });
+        data2025 = days.map(d => {
+            const s25 = avgs.salesAverages2025[d].length ? Math.round(avgs.salesAverages2025[d].reduce((a, b) => a + b, 0) / avgs.salesAverages2025[d].length) : 0;
+            const o25 = avgs.ordersAverages2025[d].length ? Math.round(avgs.ordersAverages2025[d].reduce((a, b) => a + b, 0) / avgs.ordersAverages2025[d].length) : 0;
+            return o25 > 0 ? (s25 / o25).toFixed(2) : 0;
+        });
+        subViewTitle = 'AOV';
+    } else {  // 'sales' default
+        data2024 = days.map(d => avgs.salesAverages2024[d].length ? Math.round(avgs.salesAverages2024[d].reduce((a, b) => a + b, 0) / avgs.salesAverages2024[d].length) : 0);
+        data2025 = days.map(d => avgs.salesAverages2025[d].length ? Math.round(avgs.salesAverages2025[d].reduce((a, b) => a + b, 0) / avgs.salesAverages2025[d].length) : 0);
+        subViewTitle = 'Sales';
+    }
+    labels = days;
+    datasets = [
+        {
+            label: `${subViewTitle} 2024`,
+            data: data2024,
+            backgroundColor: 'rgba(54, 162, 235, 0.5)',
+            borderColor: 'rgba(54, 162, 235, 1)',
+            borderWidth: 1
+        },
+        {
+            label: `${subViewTitle} 2025`,
+            data: data2025,
+            backgroundColor: 'rgba(255, 99, 132, 0.5)',
+            borderColor: 'rgba(255, 99, 132, 1)',
+            borderWidth: 1
+        }
+    ];
+    break;
 case 'forecast-h2':
     // Grouped bar chart: MTD and ROM for 2024, Target, 2025
     const forecastData = calculateSalesData(store, month);
