@@ -979,6 +979,7 @@ if (!canvas) {
 }
 canvas.style.display = 'block';
     const ctx = canvas.getContext('2d');
+    console.log(`Creating chart for ${sectionId}: canvas exists in DOM?`, !!document.getElementById('dynamic-chart'));
     // Destroy previous chart
     if (window.currentChart) {
         window.currentChart.destroy();
@@ -1132,6 +1133,7 @@ case 'forecast-h2':
             } : undefined
         }
     });
+    console.log(`Chart created for ${sectionId}:`, window.currentChart);
     window.activeSection = sectionId;
     container.style.display = 'block';
 }
@@ -1146,8 +1148,9 @@ sections.forEach(id => {
     const el = document.getElementById(id);
     if (el) {
         el.addEventListener('click', () => {
-    console.log(`Section clicked: ${id} - Calling updateChartForSection`);
+    console.log(`Section clicked: ${id} - About to call updateChartForSection`);
     updateChartForSection(id);
+    console.log(`updateChartForSection returned for ${id}`);
 });
     }
 });
