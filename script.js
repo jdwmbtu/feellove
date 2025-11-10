@@ -1102,22 +1102,51 @@ datasets = [
     }
 ];
             break;
-        case 'daycount-h2':
-            // Pie chart: Weekdays vs Weekends (2025 Remaining)
-            const daycountData = updateDayCountTable(store, month); // Note: This function populates table, but we can extract logic
-            // For simplicity, hardcode based on table logic (you can extract variables if needed)
-            const categories = ['Weekdays Remaining', 'Weekends Remaining'];
-            const remainingWeekdays = 0; // Placeholder - extract from updateDayCountTable logic
-            const remainingWeekends = 0; // Placeholder
-            labels = categories;
-            datasets = [{
-                data: [remainingWeekdays, remainingWeekends],
-                backgroundColor: ['rgba(54, 162, 235, 0.5)', 'rgba(255, 206, 86, 0.5)'],
-                borderColor: ['rgba(54, 162, 235, 1)', 'rgba(255, 206, 86, 1)'],
-                borderWidth: 1
-            }];
-            chartType = 'pie';
-            break;
+case 'daycount-h2':
+    // Pie chart: Weekdays vs Weekends (2025 Remaining)
+    const categories = ['Weekdays Remaining', 'Weekends Remaining'];
+    let remainingWeekdays = 0, remainingWeekends = 0;
+    let lastRecordedDate = null;
+    // Extract from table logic
+    netsalesData.forEach(row => {
+        const date = new Date(row[2]);
+        if (isNaN(date)) return;
+        const rowMonth = date.toLocaleString('en-US', { month: 'long' });
+        if (month && rowMonth !== month) return;
+        const value = row[storeColumns[store]];
+        if (!value || value.toString().trim() === '') return;
+        if (date.getFullYear() === 2025) {
+            if (!lastRecordedDate || date > lastRecordedDate) lastRecordedDate = date;
+        }
+    });
+    if (month && lastRecordedDate) {
+        const monthIndex = ['January','February','March','April','May','June','July','August','September','October','November','December'].indexOf(month);
+        const lastDayOfMonth = new Date(2025, monthIndex + 1, 0).getDate();
+        for (let d = lastRecordedDate.getDate() + 1; d <= lastDayOfMonth; d++) {
+            const date = new Date(2025, monthIndex, d);
+            const dayIndex = date.getDay();
+            if (dayIndex >= 1 && dayIndex <= 5) remainingWeekdays++;
+            else remainingWeekends++;
+        }
+    } else if (month) {
+        const monthIndex = ['January','February','March','April','May','June','July','August','September','October','November','December'].indexOf(month);
+        const lastDayOfMonth = new Date(2025, monthIndex + 1, 0).getDate();
+        for (let d = 1; d <= lastDayOfMonth; d++) {
+            const date = new Date(2025, monthIndex, d);
+            const dayIndex = date.getDay();
+            if (dayIndex >= 1 && dayIndex <= 5) remainingWeekdays++;
+            else remainingWeekends++;
+        }
+    }
+    labels = categories;
+    datasets = [{
+        data: [remainingWeekdays, remainingWeekends],
+        backgroundColor: ['rgba(54, 162, 235, 0.5)', 'rgba(255, 206, 86, 0.5)'],
+        borderColor: ['rgba(54, 162, 235, 1)', 'rgba(255, 206, 86, 1)'],
+        borderWidth: 1
+    }];
+    chartType = 'pie';
+    break;
         default:
             document.getElementById('chart-container').style.display = 'none';
             return;
