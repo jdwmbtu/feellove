@@ -1847,7 +1847,7 @@ if (rowKey === 'remaining-target') {
         },
         {
             label: 'Remaining to Target',
-            data: [null, null, remainingToTarget !== 0 ? [datamtd2025,overallTarget-data.mtd2025] : null, null],
+            data: [null, null, remainingToTarget !== 0 ? [data.mtd2025,overallTarget-data.mtd2025] : null, null],
             backgroundColor: remainingColor
         },
         {
