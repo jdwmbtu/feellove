@@ -957,29 +957,21 @@ function formatPercent(v) {
 function updateChartForSection(sectionId) {
     const store = document.getElementById('store-filter').value || 'CAFE';
     const month = document.getElementById('month-filter').value || '';
-    let canvas = document.getElementById('dynamic-chart');
-    const container = document.getElementById('chart-container');
-    if (!container) return; // Safety check
-    if (container) container.innerHTML = ''; // Clear old content before Chart.js rebuild
-// Ensure canvas exists; recreate if missing (e.g., after HTML view)
-if (!canvas) {
-    const newCanvas = document.createElement('canvas');
-    newCanvas.id = 'dynamic-chart';
-    newCanvas.width = 400;
-    newCanvas.height = 300;
-    container.appendChild(newCanvas);
-    console.log('Canvas appended, now in DOM?', !!document.getElementById('dynamic-chart'));
-    const updatedCanvas = document.getElementById('dynamic-chart');
-    canvas = updatedCanvas;
-    container.offsetHeight; // Force reflow to ensure DOM is ready for Chart.js
-    if (!updatedCanvas) return; // Safety
-
-} else {
-    // Only clear if canvas already existed (for refresh)
-    container.innerHTML = '';
-}
+   let canvas;
+const container = document.getElementById('chart-container');
+if (!container) return;
+container.innerHTML = ''; // Always clear first
+const newCanvas = document.createElement('canvas');
+newCanvas.id = 'dynamic-chart';
+newCanvas.width = 400;
+newCanvas.height = 300;
+container.appendChild(newCanvas);
+console.log('Canvas always recreated and appended, now in DOM?', !!document.getElementById('dynamic-chart'));
+canvas = document.getElementById('dynamic-chart');
+if (!canvas) return; // Safety
+container.offsetHeight; // Force reflow
 canvas.style.display = 'block';
-    const ctx = canvas.getContext('2d');
+const ctx = canvas.getContext('2d');
     console.log(`Creating chart for ${sectionId}: canvas exists in DOM?`, !!document.getElementById('dynamic-chart'));
     // Destroy previous chart
     if (window.currentChart) {
@@ -1038,17 +1030,13 @@ case 'forecast-h2':
         case 'scenarios-h2':
             // Bar chart: Scenario ROM values
             const scenarioData = calculateSalesData(store, month);
-            console.log(`Scenarios data:`, scenarioData);
-console.log(`Labels:`, labels);
-console.log(`Datasets data:`, datasets.map(ds => ds.data));
-console.log(`Container HTML before chart:`, container.innerHTML);
+            
             const mtdGrowthPct = scenarioData.mtd2024 > 0 ? ((scenarioData.mtd2025 / scenarioData.mtd2024) - 1) * 100 : 0;
             labels = [
                 `${month} 2024 Repeats`,
                 `${month} at ${growthTarget}${growthType === 'dollar' ? 'K' : '%'} Growth`,
                 `${month} at Current Rate ${formatPercent(mtdGrowthPct).replace('%', '')}%`
             ];
-            console.log('Labels assigned:', labels);
             datasets = [{
                 label: 'ROM ($)',
                 data: [scenarioData.rom2024, scenarioData.romTarget, scenarioData.rom2025],
@@ -1056,7 +1044,6 @@ console.log(`Container HTML before chart:`, container.innerHTML);
                 borderColor: 'rgba(75, 192, 192, 1)',
                 borderWidth: 1
             }];
-            console.log('Datasets assigned:', datasets);
             break;
         case 'seven-day-h2':
             // Line chart: Predicted sales and orders next 7 days
