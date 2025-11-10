@@ -1219,20 +1219,19 @@ if (growthTargetSel) growthTargetSel.addEventListener('change', () => {
     const header = document.getElementById(`${view}-header`);
     if (header) {
         header.style.cursor = 'pointer';
-        header.addEventListener('click', () => {
-            // Update active class (add underline or style)
-            document.querySelectorAll('#metrics-table th[colspan="4"]').forEach(h => {
-                h.style.textDecoration = 'none';
-                h.style.color = '#333';
-            });
-            header.style.textDecoration = 'underline';
-            header.style.color = '#3498db';
-            // Set global and refresh chart
-            currentMetricsSubView = view;
-            if (window.activeSection === 'metrics-h2') {
-                updateChartForSection('metrics-h2');
-            }
-        });
+  header.addEventListener('click', () => {
+    // Update active class (add underline or style)
+    document.querySelectorAll('#metrics-table th[colspan="4"]').forEach(h => {
+        h.style.textDecoration = 'none';
+        h.style.color = '#333';
+    });
+    header.style.textDecoration = 'underline';
+    header.style.color = '#3498db';
+    // Set global and always refresh/show chart
+    currentMetricsSubView = view;
+    window.activeSection = 'metrics-h2';  // Force section active
+    updateChartForSection('metrics-h2');
+});
     }
 });
 
