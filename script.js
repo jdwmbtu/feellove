@@ -409,14 +409,39 @@ function updateSevenDayPredictionTable(store, month) {
 /* -------------------------------------------------------------
    COMBINED METRICS TABLE
    ------------------------------------------------------------- */
-function updateCombinedMetricsTable(store, month) {
+function updateCombinedMetricsTable(store, month, view = currentMetricsView) {
     const avgs = calculateAverages(store, month);
     const tbody = document.getElementById('metrics-table')?.querySelector('tbody');
     if (!tbody) return;
     tbody.innerHTML = '';
-
     const days = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
-
+    
+    // Define columns per view (header texts, 2024 data key, 2025 data key, delta func, pct func)
+    const viewConfigs = {
+        sales: {
+            headers: ['Day', '2024 Sales', '2025 Sales', 'Delta', '% Change'],
+            dataKeys: { y24: 'salesAverages2024', y25: 'salesAverages2025' },
+            delta: (s24, s25) => s25 - s24,
+            pct: (s24, s25) => s24 > 0 ? ((s25 - s24) / s24) * 100 : (s25 > 0 ? '∞' : 0),
+            format: (v) => formatNumber(v)
+        },
+        orders: {
+            headers: ['Day', '2024 Orders', '2025 Orders', 'Delta', '% Change'],
+            dataKeys: { y24: 'ordersAverages2024', y25: 'ordersAverages2025' },
+            delta: (o24, o25) => o25 - o24,
+            pct: (o24, o25) => o24 > 0 ? ((o25 - o24) / o24) * 100 : (o25 > 0 ? '∞' : 0),
+            format: (v) => v.toString()  // Raw int for orders
+        },
+        aov: {
+            headers: ['Day', '2024 AOV', '2025 AOV', 'Delta', '% Change'],
+            dataKeys: { y24: null, y25: null },  // Computed on fly
+            delta: (aov24, aov25) => aov25 - aov24,
+            pct: (aov24, aov25) => aov24 > 0 ? ((aov25 - aov24) / aov24) * 100 : (aov25 > 0 ? '∞' : 0),
+            format: (v) => formatNumber(v, true)
+        }
+    };
+    const config = viewConfigs[view] || viewConfigs.sales;
+    
     days.forEach(d => {
         const s24 = avgs.salesAverages2024[d].length ? Math.round(avgs.salesAverages2024[d].reduce((a,b)=>a+b,0)/avgs.salesAverages2024[d].length) : 0;
         const s25 = avgs.salesAverages2025[d].length ? Math.round(avgs.salesAverages2025[d].reduce((a,b)=>a+b,0)/avgs.salesAverages2025[d].length) : 0;
@@ -424,123 +449,114 @@ function updateCombinedMetricsTable(store, month) {
         const o25 = avgs.ordersAverages2025[d].length ? Math.round(avgs.ordersAverages2025[d].reduce((a,b)=>a+b,0)/avgs.ordersAverages2025[d].length) : 0;
         const aov24 = o24 > 0 ? s24 / o24 : 0;
         const aov25 = o25 > 0 ? s25 / o25 : 0;
-
-        const deltaSales = s25 - s24;
-        const pctSales = s24 > 0 ? (deltaSales / s24) * 100 : (s25 > 0 ? '∞' : 0);
-        const deltaOrders = o25 - o24;
-        const pctOrders = o24 > 0 ? (deltaOrders / o24) * 100 : (o25 > 0 ? '∞' : 0);
-        const deltaAOV = aov25 - aov24;
-        const pctAOV = aov24 > 0 ? (deltaAOV / aov24) * 100 : (aov25 > 0 ? '∞' : 0);
-
+        
+        let y24, y25;
+        if (view === 'sales') { y24 = s24; y25 = s25; }
+        else if (view === 'orders') { y24 = o24; y25 = o25; }
+        else { y24 = aov24; y25 = aov25; }
+        
+        const delta = config.delta(y24, y25);
+        const pct = config.pct(y24, y25);
+        
         const row = document.createElement('tr');
         row.innerHTML = `
             <td>${d}</td>
-            <td>${formatNumber(s24)}</td>
-            <td>${formatNumber(s25)}</td>
-            <td>${formatNumber(deltaSales)}</td>
-            <td>${formatPercent(pctSales)}</td>
-            <td>${o24}</td>
-            <td>${o25}</td>
-            <td>${deltaOrders}</td>
-            <td>${formatPercent(pctOrders)}</td>
-            <td>${formatNumber(aov24, true)}</td>
-            <td>${formatNumber(aov25, true)}</td>
-            <td>${formatNumber(deltaAOV, true)}</td>
-            <td>${formatPercent(pctAOV)}</td>
+            <td>${config.format(y24)}</td>
+            <td>${config.format(y25)}</td>
+            <td>${config.format(delta)}</td>
+            <td>${formatPercent(pct)}</td>
         `;
         tbody.appendChild(row);
     });
-         // === SUMMARY ROWS ===
-    let totalSales24 = 0, totalOrders24 = 0, totalSales25 = 0, totalOrders25 = 0;
-
+    
+    // === SUMMARY ROWS (adapted per view) ===
+    let totalY24 = 0, totalY25 = 0;
     days.forEach(d => {
-        const s24 = avgs.salesAverages2024[d].length ? Math.round(avgs.salesAverages2024[d].reduce((a,b)=>a+b,0)/avgs.salesAverages2024[d].length) : 0;
-        const o24 = avgs.ordersAverages2024[d].length ? Math.round(avgs.ordersAverages2024[d].reduce((a,b)=>a+b,0)/avgs.ordersAverages2024[d].length) : 0;
-        const s25 = avgs.salesAverages2025[d].length ? Math.round(avgs.salesAverages2025[d].reduce((a,b)=>a+b,0)/avgs.salesAverages2025[d].length) : 0;
-        const o25 = avgs.ordersAverages2025[d].length ? Math.round(avgs.ordersAverages2025[d].reduce((a,b)=>a+b,0)/avgs.ordersAverages2025[d].length) : 0;
-
-        totalSales24 += s24;
-        totalOrders24 += o24;
-        totalSales25 += s25;
-        totalOrders25 += o25;
+        let y24, y25;
+        if (view === 'sales') {
+            y24 = avgs.salesAverages2024[d].length ? Math.round(avgs.salesAverages2024[d].reduce((a,b)=>a+b,0)/avgs.salesAverages2024[d].length) : 0;
+            y25 = avgs.salesAverages2025[d].length ? Math.round(avgs.salesAverages2025[d].reduce((a,b)=>a+b,0)/avgs.salesAverages2025[d].length) : 0;
+        } else if (view === 'orders') {
+            y24 = avgs.ordersAverages2024[d].length ? Math.round(avgs.ordersAverages2024[d].reduce((a,b)=>a+b,0)/avgs.ordersAverages2024[d].length) : 0;
+            y25 = avgs.ordersAverages2025[d].length ? Math.round(avgs.ordersAverages2025[d].reduce((a,b)=>a+b,0)/avgs.ordersAverages2025[d].length) : 0;
+        } else {
+            const s24 = avgs.salesAverages2024[d].length ? Math.round(avgs.salesAverages2024[d].reduce((a,b)=>a+b,0)/avgs.salesAverages2024[d].length) : 0;
+            const o24 = avgs.ordersAverages2024[d].length ? Math.round(avgs.ordersAverages2024[d].reduce((a,b)=>a+b,0)/avgs.ordersAverages2024[d].length) : 0;
+            const s25 = avgs.salesAverages2025[d].length ? Math.round(avgs.salesAverages2025[d].reduce((a,b)=>a+b,0)/avgs.salesAverages2025[d].length) : 0;
+            const o25 = avgs.ordersAverages2025[d].length ? Math.round(avgs.ordersAverages2025[d].reduce((a,b)=>a+b,0)/avgs.ordersAverages2025[d].length) : 0;
+            y24 = o24 > 0 ? s24 / o24 : 0;
+            y25 = o25 > 0 ? s25 / o25 : 0;
+        }
+        totalY24 += y24;
+        totalY25 += y25;
     });
-
-    const avgAOV24 = totalOrders24 > 0 ? totalSales24 / totalOrders24 : 0;
-    const avgAOV25 = totalOrders25 > 0 ? totalSales25 / totalOrders25 : 0;
-
+    
+    const deltaTotal = config.delta(totalY24, totalY25);
+    const pctTotal = config.pct(totalY24, totalY25);
+    
     // NEW: Check if all 7 days have data (at least one entry in 2024 or 2025 averages for this month)
-    const hasFullWeekData = days.every(d => 
-         avgs.salesAverages2025[d].length > 0
+    const hasFullWeekData = days.every(d =>
+         avgs.salesAverages2025[d].length > 0  // Reuse sales check for simplicity
     );
-
     if (hasFullWeekData) {
         const summaryRow = document.createElement('tr');
         summaryRow.style.fontWeight = 'bold';
         summaryRow.style.backgroundColor = '#f0f0f0';
         summaryRow.innerHTML = `
             <td><strong>Weekly</strong></td>
-            <td>${formatNumber(totalSales24)}</td>
-            <td>${formatNumber(totalSales25)}</td>
-            <td>${formatNumber(totalSales25 - totalSales24)}</td>
-            <td>${formatPercent(totalSales24 > 0 ? ((totalSales25 - totalSales24) / totalSales24) * 100 : 0)}</td>
-            <td>${totalOrders24}</td>
-            <td>${totalOrders25}</td>
-            <td>${totalOrders25 - totalOrders24}</td>
-            <td>${formatPercent(totalOrders24 > 0 ? ((totalOrders25 - totalOrders24) / totalOrders24) * 100 : 0)}</td>
-            <td>${formatNumber(avgAOV24, true)}</td>
-            <td>${formatNumber(avgAOV25, true)}</td>
-            <td>${formatNumber(avgAOV25 - avgAOV24, true)}</td>
-            <td>${formatPercent(avgAOV24 > 0 ? ((avgAOV25 - avgAOV24) / avgAOV24) * 100 : 0)}</td>
+            <td>${config.format(totalY24)}</td>
+            <td>${config.format(totalY25)}</td>
+            <td>${config.format(deltaTotal)}</td>
+            <td>${formatPercent(pctTotal)}</td>
         `;
         tbody.appendChild(summaryRow);
     }
-
-
-     // === MONTHLY TOTALS ROW ===
+    
+    // === MONTHLY TOTALS ROW (adapted per view) ===
     const data = calculateSalesData(store, month);
     const shift = isAdjusted ? 1 : 0;
-    const monthlySales24 = data.mtd2024;
-    const monthlySales25 = data.mtd2025;
-
-    // SAME EXACT LOGIC AS NET SALES MTD — BUT FOR ORDERS
-    const monthlyOrders24 = ordersData.reduce((s, r) => {
-        const d = new Date(r[2]);
-        if (d.getFullYear() !== 2024 || d.toLocaleString('en-US',{month:'long'}) !== month) return s;
-        const day = d.getDate();
-        if (day < (1 + shift) || day > (data.elapsedDays + shift)) return s;
-        const v = r[storeColumns[store]];
-        return s + (v && v.toString().trim() !== '' ? parseFloat(v.toString().replace(/[^0-9.-]+/g, '') || 0) : 0);
-    }, 0);
-
-    const monthlyOrders25 = ordersData.reduce((s, r) => {
-        const d = new Date(r[2]);
-        if (d.getFullYear() !== 2025 || d > data.last2025 || d.toLocaleString('en-US',{month:'long'}) !== month) return s;
-        const v = r[storeColumns[store]];
-        return s + (v && v.toString().trim() !== '' ? parseFloat(v.toString().replace(/[^0-9.-]+/g, '') || 0) : 0);
-    }, 0);
-
-    const monthlyAOV24 = monthlyOrders24 > 0 ? monthlySales24 / monthlyOrders24 : 0;
-    const monthlyAOV25 = monthlyOrders25 > 0 ? monthlySales25 / monthlyOrders25 : 0;
-
+    let monthlyY24, monthlyY25;
+    if (view === 'sales') {
+        monthlyY24 = data.mtd2024;
+        monthlyY25 = data.mtd2025;
+    } else if (view === 'orders') {
+        monthlyY24 = ordersData.reduce((s, r) => {
+            const d = new Date(r[2]);
+            if (d.getFullYear() !== 2024 || d.toLocaleString('en-US',{month:'long'}) !== month) return s;
+            const day = d.getDate();
+            if (day < (1 + shift) || day > (data.elapsedDays + shift)) return s;
+            const v = r[storeColumns[store]];
+            return s + (v && v.toString().trim() !== '' ? parseFloat(v.toString().replace(/[^0-9.-]+/g, '') || 0) : 0);
+        }, 0);
+        monthlyY25 = ordersData.reduce((s, r) => {
+            const d = new Date(r[2]);
+            if (d.getFullYear() !== 2025 || d > data.last2025 || d.toLocaleString('en-US',{month:'long'}) !== month) return s;
+            const v = r[storeColumns[store]];
+            return s + (v && v.toString().trim() !== '' ? parseFloat(v.toString().replace(/[^0-9.-]+/g, '') || 0) : 0);
+        }, 0);
+    } else {  // AOV
+        const monthlySales24 = data.mtd2024;
+        const monthlySales25 = data.mtd2025;
+        monthlyY24 = monthlySales24 / monthlyY24;  // Reuse orders calc from above if needed
+        monthlyY25 = monthlySales25 / monthlyY25;
+    }
+    const monthlyDelta = config.delta(monthlyY24, monthlyY25);
+    const monthlyPct = config.pct(monthlyY24, monthlyY25);
+    
     const monthlyRow = document.createElement('tr');
     monthlyRow.style.fontWeight = 'bold';
     monthlyRow.style.backgroundColor = '#e6e6e6';
     monthlyRow.innerHTML = `
         <td><strong>Month to Date</strong></td>
-        <td>${formatNumber(monthlySales24)}</td>
-        <td>${formatNumber(monthlySales25)}</td>
-        <td>${formatNumber(monthlySales25 - monthlySales24)}</td>
-        <td>${formatPercent(monthlySales24 > 0 ? ((monthlySales25 - monthlySales24) / monthlySales24) * 100 : 0)}</td>
-        <td>${monthlyOrders24}</td>
-        <td>${monthlyOrders25}</td>
-        <td>${monthlyOrders25 - monthlyOrders24}</td>
-        <td>${formatPercent(monthlyOrders24 > 0 ? ((monthlyOrders25 - monthlyOrders24) / monthlyOrders24) * 100 : 0)}</td>
-        <td>${formatNumber(monthlyAOV24, true)}</td>
-        <td>${formatNumber(monthlyAOV25, true)}</td>
-        <td>${formatNumber(monthlyAOV25 - monthlyAOV24, true)}</td>
-        <td>${formatPercent(monthlyAOV24 > 0 ? ((monthlyAOV25 - monthlyAOV24) / monthlyAOV24) * 100 : 0)}</td>
+        <td>${config.format(monthlyY24)}</td>
+        <td>${config.format(monthlyY25)}</td>
+        <td>${config.format(monthlyDelta)}</td>
+        <td>${formatPercent(monthlyPct)}</td>
     `;
     tbody.appendChild(monthlyRow);
+    
+    // Update global view
+    currentMetricsView = view;
 }
 
 
