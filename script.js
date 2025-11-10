@@ -1885,22 +1885,20 @@ if (rowKey === 'remaining-target') {
                 legend: { display: true, position: 'top' },
                 tooltip: {
                     callbacks: {
-                       label: function(context) {
+label: function(context) {
     let label = context.dataset.label || '';
     if (label) {
         label += ': ';
     }
     if (context.parsed.y !== null) {
-        let value = context.parsed.y;
-        if (context.dataset.label === 'Remaining to Target' && context.chart.scales.y.stacked) {
-            // Isolate segment value (difference) in stacked chart
-            value = context.dataset.data[context.dataIndex] || value;
+        if (context.dataset.label === 'Remaining to Target') {
+            label += formatNumber(remainingToTarget);  // Direct diff value
+        } else {
+            label += formatNumber(context.parsed.y);
         }
-        label += formatNumber(value);
     }
     return label;
-}
-                    }
+}                    }
                 }
             },
             scales: {
