@@ -1140,9 +1140,11 @@ window.onload = () => {
 sections.forEach(id => {
     const el = document.getElementById(id);
     if (el) {
-        el.addEventListener('click', () => {
-            updateChartForSection(id);
-        });
+        el.addEventListener('click', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    updateChartForSection(id);
+});
     }
 });
 // Add change listeners for filters/toggles
