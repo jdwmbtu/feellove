@@ -1891,11 +1891,12 @@ if (rowKey === 'remaining-target') {
         label += ': ';
     }
     if (context.parsed.y !== null) {
-        if (context.dataset.label === 'Remaining to Target') {
-            label += formatNumber(context.parsed.y);  // Just the difference value
-        } else {
-            label += formatNumber(context.parsed.y);
+        let value = context.parsed.y;
+        if (context.dataset.label === 'Remaining to Target' && context.chart.scales.y.stacked) {
+            // Isolate segment value (difference) in stacked chart
+            value = context.dataset.data[context.dataIndex] || value;
         }
+        label += formatNumber(value);
     }
     return label;
 }
@@ -1906,7 +1907,7 @@ if (rowKey === 'remaining-target') {
                 x: { stacked: false },
                 y: { 
                     beginAtZero: true,
-                    stacked: false,
+                    stacked: true,
                     title: { display: true, text: 'Net Sales ($)' }
                 }
             }
