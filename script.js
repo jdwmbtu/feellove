@@ -961,18 +961,21 @@ function updateChartForSection(sectionId) {
     const container = document.getElementById('chart-container');
     if (!container) return; // Safety check
     if (container) container.innerHTML = ''; // Clear old content before Chart.js rebuild
-    // Ensure canvas exists; recreate if missing (e.g., after HTML view)
-    if (!canvas) {
-        const newCanvas = document.createElement('canvas');
-        newCanvas.id = 'dynamic-chart';
-        newCanvas.width = 400;
-        newCanvas.height = 300;
-        container.appendChild(newCanvas);
-        const updatedCanvas = document.getElementById('dynamic-chart');
-        if (!updatedCanvas) return; // Safety
-        canvas = updatedCanvas;
-    }
-    canvas.style.display = 'block';
+// Ensure canvas exists; recreate if missing (e.g., after HTML view)
+if (!canvas) {
+    const newCanvas = document.createElement('canvas');
+    newCanvas.id = 'dynamic-chart';
+    newCanvas.width = 400;
+    newCanvas.height = 300;
+    container.appendChild(newCanvas);
+    const updatedCanvas = document.getElementById('dynamic-chart');
+    if (!updatedCanvas) return; // Safety
+    canvas = updatedCanvas;
+} else {
+    // Only clear if canvas already existed (for refresh)
+    container.innerHTML = '';
+}
+canvas.style.display = 'block';
     const ctx = canvas.getContext('2d');
     // Destroy previous chart
     if (window.currentChart) {
