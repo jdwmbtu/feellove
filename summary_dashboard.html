@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>New Store Metrics Dashboard</title>
+    <script src="https://apis.google.com/js/api.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+    body { font-family: Arial, sans-serif; text-align: center; background: #f8f9fa; }
+    h1 { margin: 20px 0; color: #2c3e50; }
+    h2, h3 { color: #34495e; }
+    h2.clickable { cursor: pointer; }
+    h2.clickable:hover { text-decoration: underline; color: #3498db; }
+
+    /* Base table style */
+    .data-table {
+        margin: 10px auto;
+        border-collapse: collapse;
+        width: 100%;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        border-radius: 8px;
+        overflow: hidden;
+        background: white;
+    }
+    .data-table th, .data-table td {
+        border: 1px solid #ddd;
+        padding: 8px;
+        text-align: center;
+    }
+    .data-table th {
+        background: #e0e0e0;
+        font-weight: bold;
+    }
+    .data-table tr:nth-child(even) { background-color: #f9f9f9; }
+    .data-table tr:hover { background-color: #fffacd !important; }
+
+    .negative { color: red; }
+
+    /* Controls */
+    .controls { margin: 10px 0; }
+    .toggle-btn {
+        margin: 10px;
+        padding: 6px 12px;
+        cursor: pointer;
+        background-color: #3498db;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        font-weight: bold;
+    }
+    .toggle-btn:hover { background-color: #2980b9; }
+
+    /* Layout containers */
+    .top-row {
+        display: flex;
+        gap: 20px;
+        justify-content: center;
+        flex-wrap: wrap;
+        margin: 20px 0;
+    }
+    .left-panel, .right-panel {
+        flex: 1;
+        min-width: 300px;
+    }
+    .left-panel { max-width: 400px; }
+    .right-panel { min-width: 500px; }
+
+    /* Scrollable tables */
+    .scrollable {
+        max-height: 320px;
+        overflow-y: auto;
+        border: 1px solid #ddd;
+        border-radius: 6px;
+    }
+
+    /* Chart Container */
+    #chart-container {
+        margin: 10px auto;
+        width: 95%;
+        height: 300px;
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        padding: 10px;
+        display: none;
+    }
+
+    /* RESPONSIVE TABLES - MOBILE */
+    @media (max-width: 768px) {
+        .data-table {
+            font-size: 0.75em;
+            width: 100%;
+        }
+        .data-table th, .data-table td {
+            padding: 4px 6px;
+        }
+        .scrollable {
+            max-height: 280px;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+        .top-row {
+            flex-direction: column;
+        }
+        .left-panel, .right-panel {
+            min-width: 100%;
+            max-width: 100%;
+        }
+        #chart-container {
+            width: 95%;
+            height: 300px;
+        }
+    }
+</style>
+</head>
+<body>
+
+<h1>New Store Metrics Dashboard</h1>
+
+<!-- TOP ROW: Controls -->
+<div class="top-row">
+    <div class="left-panel">
+        <table class="data-table" style="font-size: 0.9em;">
+            <tr>
+                <td><label for="month-filter">Month:</label></td>
+                <td><select id="month-filter" onchange="updateTables()"></select></td>
+            </tr>
+            <tr>
+                <td><label for="year-filter">Year:</label></td>
+                <td>
+                    <select id="year-filter" onchange="updateTables()">
+                        <option value="2024">2024</option>
+                        <option value="2025">2025</option>
+                    </select>
+                </td>
+            </tr>
+            <tr>
+                <td><label for="view-mode">View Mode:</label></td>
+                <td>
+                    <select id="view-mode" onchange="updateTables()">
+                        <option value="raw">Raw</option>
+                        <option value="growth-dollar">Growth ($)</option>
+                        <option value="growth-percent">Growth (%)</option>
+                    </select>
+                </td>
+            </tr>
+            <tr>
+                <td><label for="agg-mode">Aggregate:</label></td>
+                <td>
+                    <select id="agg-mode">
+                        <option value="average">Average</option>
+                        <option value="sum">Sum</option>
+                    </select>
+                </td>
+            </tr>
+        </table>
+    </div>
+    <!-- Right panel with chart and status -->
+    <div class="right-panel">
+        <div id="chart-container">
+            <canvas id="dynamic-chart"></canvas>
+        </div>
+    </div>
+</div>
+
+<!-- SECTION 1: Net Sales by Day of Week -->
+<h2 id="sales-h2" class="clickable">Net Sales by Day of Week</h2>
+<table id="sales-table" class="data-table">
+    <thead>
+        <tr>
+            <th>Day of Week</th>
+            <th>CAFE</th>
+            <th>FEELLOVE</th>
+            <th>SNOW</th>
+            <th>ZION</th>
+            <th>Total</th>
+        </tr>
+    </thead>
+    <tbody></tbody>
+</table>
+
+<!-- SECTION 2: Traffic (Orders) by Day of Week -->
+<h2 id="orders-h2" class="clickable">Traffic (Orders) by Day of Week</h2>
+<table id="orders-table" class="data-table">
+    <thead>
+        <tr>
+            <th>Day of Week</th>
+            <th>CAFE</th>
+            <th>FEELLOVE</th>
+            <th>SNOW</th>
+            <th>ZION</th>
+            <th>Total</th>
+        </tr>
+    </thead>
+    <tbody></tbody>
+</table>
+
+<!-- SECTION 3: Average Order Value by Day of Week -->
+<h2 id="aov-h2" class="clickable">Average Order Value by Day of Week</h2>
+<table id="aov-table" class="data-table">
+    <thead>
+        <tr>
+            <th>Day of Week</th>
+            <th>CAFE</th>
+            <th>FEELLOVE</th>
+            <th>SNOW</th>
+            <th>ZION</th>
+            <th>Total</th>
+        </tr>
+    </thead>
+    <tbody></tbody>
+</table>
+
+<!-- SECTION 4: Weekday Counts in Selected Month -->
+<h2 id="weekday-count-h2" class="clickable">Weekday Counts in Selected Month</h2>
+<table id="weekday-count-table" class="data-table">
+    <thead>
+        <tr>
+            <th>Day of Week</th>
+            <th>Count</th>
+        </tr>
+    </thead>
+    <tbody></tbody>
+</table>
+
+<script src="summary_script.js"></script>
+</body>
+</html>
