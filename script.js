@@ -6,8 +6,8 @@ const storeColumns = { CAFE: 3, FEELLOVE: 4, SNOW: 5, ZION: 6 };
 
 let netsalesData = null;
 let ordersData = null;
-let growthTarget = 10;
-let growthType = 'percent';
+let growthTarget = 20;
+let growthType = 'number';
 let isAdjusted = true;
 let lastModifiedTime = null;
 let currentMetricsSubView = 'sales';  // Default sub-view
