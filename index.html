@@ -131,56 +131,81 @@
             display: none;
         }
 
-        /* RESPONSIVE TABLES - MOBILE */
+        /* RESPONSIVE */
         @media (max-width: 768px) {
-            .data-table {
-                font-size: 0.75em;
-                width: 100%;
-            }
-            .data-table th, .data-table td {
-                padding: 4px 6px;
-            }
-            .scrollable {
-                max-height: 280px;
-                overflow-x: auto;
-                -webkit-overflow-scrolling: touch;
-            }
-            .top-row, .middle-row {
-                flex-direction: column;
-            }
-            .left-panel, .right-panel {
-                min-width: 100%;
-                max-width: 100%;
-            }
-            #metrics-table th, #metrics-table td {
-                font-size: 0.7em;
-            }
-            #summary-table th, #summary-table td {
-                font-size: 0.8em;
-            }
-            #chart-container {
-                width: 100%;
-                height: 300px;
-            }
+            .data-table { font-size: 0.75em; }
+            .scrollable { max-height: 280px; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+            .top-row, .middle-row { flex-direction: column; }
+            .left-panel, .right-panel { min-width: 100%; max-width: 100%; }
+            #chart-container { height: 300px; }
         }
 
-        .sub-view-btn {
-    padding: 5px 10px; margin: 0 5px; border: 1px solid #ddd; background: #f9f9f9; cursor: pointer;
-}
-.sub-view-btn.active { background: #3498db; color: white; }
+        /* ─────── TODAY'S SCHEDULE GANTT (new) ─────── */
+        #schedule-container { margin: 20px auto; max-width: 1000px; background: white; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); overflow: hidden; }
+        .gantt-header {
+            display: grid;
+            grid-template-columns: 150px repeat(13, 1fr);
+            font-weight: bold;
+            background: #34495e;
+            color: white;
+            padding: 10px 0;
+            border-radius: 8px 8px 0 0;
+        }
+        .gantt-header > div { text-align: center; padding: 8px 4px; font-size: 0.9em; }
+        .hour { position: relative; }
+        .hour span { position: absolute; bottom: 4px; left: 50%; transform: translateX(-50%); font-size: 0.85em; }
+        .hour::after {
+            content: ''; position: absolute; top: 10px; left: 0; right: 0; height: 100%;
+            border-left: 1px dotted #aaa;
+        }
+        .hour:nth-child(2)::after { border-left: 3px solid #27ae60; } /* 6am */
+        .hour:nth-last-child(2)::after { border-left: 3px solid #27ae60; } /* 5pm */
 
-
-
-
+        .employee-row {
+            display: grid;
+            grid-template-columns: 150px 1fr;
+            align-items: center;
+            gap: 10px;
+            padding: 6px 0;
+            border-bottom: 1px solid #eee;
+        }
+        .employee-name { font-weight: bold; padding-left: 12px; }
+        .timeline {
+            position: relative;
+            height: 44px;
+            background: #f8f9fa;
+            border-radius: 6px;
+            overflow: hidden;
+        }
+        .shift-bar {
+            position: absolute;
+            top: 4px;
+            height: 36px;
+            background: #3498db;
+            border-radius: 6px;
+            color: white;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.9em;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+        }
     </style>
 </head>
 <body>
 
 <h1>Store Sales Dashboard</h1>
 <a href="summary_dashboard.html" style="display: inline-block; padding: 10px 20px; background: #3498db; color: white; text-decoration: none; border-radius: 4px; margin: 5px;">View All Store Summary Dashboard</a>
+
+<!-- TODAY'S SCHEDULE SECTION -->
+<h2 id="schedule-h2" class="clickable">Today’s Schedule – <span id="schedule-date">loading…</span></h2>
+<div id="schedule-container" style="display: none;">
+    <div id="gantt-chart" class="gantt">Loading schedule…</div>
+</div>
+
 <!-- TOP ROW: Controls + Summary -->
 <div class="top-row">
-    
     <!-- LEFT: Controls -->
     <div class="left-panel">
         <table class="data-table" style="font-size: 0.9em;">
@@ -200,82 +225,65 @@
                 </td>
             </tr>
             <tr>
-    <td><label for="growth-target">Growth Target:</label></td>
-    <td>
-        <select id="growth-target" onchange="updateGrowthTarget()">
-            <optgroup label="Percent">
-                <option value="10">+10%</option>
-                <option value="20">+20%</option>
-                <option value="25">+25%</option>
-                <option value="30">+30%</option>
-            </optgroup>
-            <optgroup label="Dollar ($K)">
-                <option value="5">+$5K</option>
-                <option value="10">+$10K</option>
-                <option value="15">+$15K</option>
-                <option value="20" selected>+$20K</option>
-                <option value="25">+$25K</option>
-            </optgroup>
-        </select>
-    </td>
-</tr>
+                <td><label for="growth-target">Growth Target:</label></td>
+                <td>
+                    <select id="growth-target" onchange="updateGrowthTarget()">
+                        <optgroup label="Percent">
+                            <option value="10">+10%</option>
+                            <option value="20">+20%</option>
+                            <option value="25">+25%</option>
+                            <option value="30">+30%</option>
+                        </optgroup>
+                        <optgroup label="Dollar ($K)">
+                            <option value="5">+$5K</option>
+                            <option value="10">+$10K</option>
+                            <option value="15">+$15K</option>
+                            <option value="20" selected>+$20K</option>
+                            <option value="25">+$25K</option>
+                        </optgroup>
+                    </select>
+                </td>
+            </tr>
             <tr>
                 <td><label>Adjusted:</label></td>
                 <td><label><input type="checkbox" id="adjusted-toggle" onchange="updateTables()"> Yes</label></td>
             </tr>
-
-
         </table>
     </div>
 
     <!-- RIGHT: Summary -->
     <div class="right-panel">
-          <table id="summary-table" class="data-table" style="font-size: 0.9em; width:100%;">
-    <thead>
-        <tr>
-            <th style="width: 20%;">Metric</th>
-            <th style="width: 15%;">Value</th>
-            <th style="width: 65%;">Source</th>
-            
-        </tr>
-    </thead>
-    <tbody></tbody>
-</table>
-        </div>
+        <table id="summary-table" class="data-table" style="font-size: 0.9em; width:100%;">
+            <thead>
+                <tr>
+                    <th style="width: 20%;">Metric</th>
+                    <th style="width: 15%;">Value</th>
+                    <th style="width: 65%;">Source</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
 </div>
 
-<!-- MIDDLE ROW: Simple Forecast + Daily Metrics -->
-<!-- LEFT: Simple Forecast + RIGHT: Scenarios -->
+<!-- MIDDLE ROW: Simple Forecast + Scenarios -->
 <div class="middle-row">
-    
-    <!-- LEFT: Simple Forecast -->
     <div class="left-panel">
         <h2 id="forecast-h2" class="clickable" style="margin:0 0 10px 0;">Simple Forecast</h2>
         <table id="forecast-table" class="data-table" style="font-size: 0.9em;">
             <thead>
-                <tr>
-                    <th>Category</th>
-                    <th>MTD</th>
-                    <th>ROM</th>
-                </tr>
+                <tr><th>Category</th><th>MTD</th><th>ROM</th></tr>
             </thead>
             <tbody></tbody>
         </table>
         <p id="forecast-count" style="margin:5px 0; font-size:0.8em;"></p>
     </div>
 
-    <!-- RIGHT: Scenarios -->
     <div class="right-panel">
         <h2 id="scenarios-h2" class="clickable" style="margin:0 0 10px 0;">Scenarios</h2>
         <table id="scenarios-table" class="data-table" style="font-size: 0.9em;">
             <thead>
-                <tr>
-                    <th>MTD</th>
-                    <th>Scenario</th>
-                    <th>ROM</th>
-                    <th>Total</th>
-                    <th>vs Target</th>
-                </tr>
+                <tr><th>MTD</th><th>Scenario</th><th>ROM</th><th>Total</th><th>vs Target</th></tr>
             </thead>
             <tbody></tbody>
         </table>
@@ -287,7 +295,7 @@
     <canvas id="dynamic-chart"></canvas>
 </div>
 
-<!-- 7-DAY PREDICTION – HORIZONTAL -->
+<!-- 7-DAY PREDICTION -->
 <h2 id="seven-day-h2" class="clickable">Next 7 Days Prediction</h2>
 <div id="seven-day-prediction-container">
     <table class="data-table" style="font-size:0.85em; width:100%;">
@@ -295,47 +303,32 @@
     </table>
 </div>
 
-<!-- MIDDLE: Daily Metrics -->
+<!-- Daily Metrics -->
 <h2 id="metrics-h2" class="clickable">Daily Metrics</h2>
 <div id="metrics-sub-headers"></div>
-    <table id="metrics-table" class="data-table">
-        
-        <thead>
-            <tr>
-    <th rowspan="2">Day</th>
-    <th id="sales-header" colspan="4">Sales</th>
-    <th id="orders-header" colspan="4">Orders</th>
-    <th id="aov-header" colspan="4">AOV</th>
-</tr>
-            <tr>
-                <th>2024</th>
-                <th>2025</th>
-                <th>$</th>
-                <th>%</th>
-                <th>2024</th>
-                <th>2025</th>
-                <th>#</th>
-                <th>%</th>
-                <th>2024</th>
-                <th>2025</th>
-                <th>$</th>
-                <th>%</th>
-            </tr>
-        </thead>
-        <tbody></tbody>
-    </table>
+<table id="metrics-table" class="data-table">
+    <thead>
+        <tr>
+            <th rowspan="2">Day</th>
+            <th id="sales-header" colspan="4">Sales</th>
+            <th id="orders-header" colspan="4">Orders</th>
+            <th id="aov-header" colspan="4">AOV</th>
+        </tr>
+        <tr>
+            <th>2024</th><th>2025</th><th>$</th><th>%</th>
+            <th>2024</th><th>2025</th><th>#</th><th><th>%</th>
+            <th>2024</th><th>2025</th><th>$</th><th>%</th>
+        </tr>
+    </thead>
+    <tbody></tbody>
+</table>
 <p id="metrics-count" style="margin:5px 0; font-size:0.8em;"></p>
 
-<!-- BOTTOM: Day Count -->
+<!-- Day Counts -->
 <h2 id="daycount-h2" class="clickable">Day Counts by Month</h2>
 <table id="daycount-table" class="data-table">
     <thead>
-        <tr>
-            <th>Category</th>
-            <th>2024 Count</th>
-            <th>2025 Elapsed</th>
-            <th>2025 Remaining</th>
-        </tr>
+        <tr><th>Category</th><th>2024 Count</th><th>2025 Elapsed</th><th>2025 Remaining</th></tr>
     </thead>
     <tbody></tbody>
 </table>
