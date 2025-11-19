@@ -2009,5 +2009,104 @@ label: function(context) {
     window.activeView = 'remaining-target';
     return;
 }
-    // For other rows, extend similarly (e.g., if (rowKey === 'mtd-growth') { ... })
+ 
+// ====================== TODAY'S SCHEDULE ======================
+const scheduleSheetId = "1whPL4X-I815XVKbeFDxEHbhHbddUtb1XwsSE7MUaWYo"; // same sheet as before
+const scheduleTabs = {
+    CAFE: "Schedule-CAFE",
+    FEELLOVE: "Schedule-FEELLOVE",
+    SNOW: "Schedule-SNOW",
+    ZION: "Schedule-ZION"
+};
+
+function loadTodaySchedule(store) {
+    const today = new Date();
+    const todayShort = today.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }); // e.g. Nov 19, 2025
+    document.getElementById("schedule-date").textContent = today.toLocaleDateString("en-US", { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
+
+    const tab = scheduleTabs[store] || "Schedule-SNOW";
+    fetch(`https://docs.google.com/spreadsheets/d/${scheduleSheetId}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(tab)}`)
+        .then(r => r.text())
+        .then(csv => {
+            const lines = csv.trim().split("\n");
+            const shifts = [];
+
+            for (let i = 1; i < lines.length; i++) {
+                const cols = lines[i].match(/(".*?"|[^",]+)(?=\s*,|\s*$)/g) || [];
+                if (cols.length < 5) continue;
+                const dateCol = cols[0].replace(/^"|"$/g, '').trim();
+                const employee = cols[2]?.replace(/^"|"$/g, '').trim().replace(/ \(Shift at .*\)/, '') || '';
+                const start = cols[3]?.replace(/^"|"$/g, '').trim();
+                const end = cols[4]?.replace(/^"|"$/g, '').trim();
+
+                if (dateCol === todayShort && employee && start && end) {
+                    shifts.push({ employee, start, end });
+                }
+            }
+
+            // Build Gantt
+            let html = `<div class="gantt-header"><div>Staff</div>`;
+            for (let h = 5; h <= 17; h++) { // 5am – 5pm (13 columns)
+                const label = h > 12 ? (h - 12) + ":00" : h + ":00";
+                const suffix = h >= 12 ? "pm" : "am";
+                html += `<div class="hour"><span>${label}${suffix}</span></div>`;
+            }
+            html += `</div>`;
+
+            if (shifts.length === 0) {
+                html += `<p style="padding:20px; text-align:center; color:#777;">No shifts scheduled today</p>`;
+            } else {
+                shifts.sort((a, b) => a.start.localeCompare(b.start));
+                shifts.forEach(s => {
+                    const startH = parseInt(s.start.split(":")[0]);
+                    const startM = parseInt(s.start.split(":")[1]);
+                    const endH = parseInt(s.end.split(":")[0]);
+                    const endM = parseInt(s.end.split(":")[1]);
+
+                    const startDecimal = startH + startM / 60;
+                    const endDecimal = endH + endM / 60;
+
+                    const left = ((startDecimal - 5) / 13) * 100;   // 5am = 0%
+                    const width = ((endDecimal - startDecimal) / 13) * 100;
+
+                    html += `
+                    <div class="employee-row">
+                        <div class="employee-name">${s.employee}</div>
+                        <div class="timeline">
+                            <div class="shift-bar" style="left:${left}%; width:${width}%;">
+                                ${s.start} – ${s.end}
+                            </div>
+                        </div>
+                    </div>`;
+                });
+            }
+
+            document.getElementById("gantt-chart").innerHTML = html;
+            document.getElementById("schedule-container").style.display = "block";
+        })
+        .catch(() => {
+            document.getElementById("gantt-chart").innerHTML = "<p style='padding:20px;color:red;'>Failed to load schedule</p>";
+            document.getElementById("schedule-container").style.display = "block";
+        });
+}
+
+// Make schedule header collapsible
+document.getElementById("schedule-h2").addEventListener("click", () => {
+    const container = document.getElementById("schedule-container");
+    container.style.display = container.style.display === "none" ? "block" : "none";
+});
+
+// Initial load + reload when store changes
+document.addEventListener("store-filter", "change", () => {
+    const store = document.getElementById("store-filter").value;
+    loadTodaySchedule(store);
+});
+
+// Load for default store on page load
+loadTodaySchedule(document.getElementById("store-filter").value || "SNOW");
+
+
+
+
+// For other rows, extend similarly (e.g., if (rowKey === 'mtd-growth') { ... })
 }
