@@ -2010,7 +2010,7 @@ label: function(context) {
     return;
 }
  
-// ====================== TODAY'S SCHEDULE (CORRECTED) ======================
+// ====================== TODAY'S SCHEDULE – ORIGINAL WORKING VERSION ======================
 const scheduleSheetId = "1whPL4X-I815XVKbeFDxEHbhHbddUtb1XwsSE7MUaWYo";
 const scheduleTabs = {
     CAFE: "Schedule-CAFE",
@@ -2019,71 +2019,75 @@ const scheduleTabs = {
     ZION: "Schedule-ZION"
 };
 
+function formatMT(timeStr) {
+    let [h, m] = timeStr.split(":").map(Number);
+    h = (h - 7 + 24) % 24;
+    return `${h}:${m.toString().padStart(2,"0")}`;
+}
+
 function loadTodaySchedule(store) {
     const today = new Date();
-    document.getElementById("schedule-date").textContent =
-        today.toLocaleDateString("en-US", { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
-
     const todayShort = today.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
-    const tab = scheduleTabs[store] || "Schedule-SNOW";
+    document.getElementById("schedule-date").textContent = today.toLocaleDateString("en-US", { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
 
+    const tab = scheduleTabs[store];
     fetch(`https://docs.google.com/spreadsheets/d/${scheduleSheetId}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(tab)}`)
         .then(r => r.text())
-        .then(csv => {
-            const lines = csv.trim().split("\n");
+        .then(scheduleText => {
+            const lines = scheduleText.trim().split("\n");
             const shifts = [];
-
             for (let i = 1; i < lines.length; i++) {
-                const cols = lines[i].match(/(".*?"|[^",]+)(?=\s*,|\s*$)/g) || [];
-                if (cols.length < 5) continue;
-                const dateCol = cols[0].replace(/^"|"$/g, '').trim();
-                const employee = cols[2]?.replace(/^"|"$/g, '').replace(/ \(Shift at .*\)/, '').trim() || '';
-                const start = cols[3]?.replace(/^"|"$/g, '').trim();
-                const end = cols[4]?.replace(/^"|"$/g, '').trim();
-
-                if (dateCol === todayShort && employee) {
-                    shifts.push({ employee, start, end });
+                const row = lines[i];
+                if (!row) continue;
+                const cols = [];
+                let field = "", inQuotes = false;
+                for (let char of row + ",") {
+                    if (char === '"') inQuotes = !inQuotes;
+                    else if (char === ',' && !inQuotes) { cols.push(field.trim().replace(/^"|"$/g, '')); field = ""; }
+                    else field += char;
+                }
+                if (cols[0] === todayShort && cols[2]) {
+                    shifts.push({
+                        employee: cols[2].replace(/ \(Shift at .*\)/, '').trim(),
+                        start: cols[3],
+                        end: cols[4]
+                    });
                 }
             }
 
-            // build gantt exactly as before (unchanged)
-            let html = `<div class="gantt-header"><div>Staff</div>`;
-            for (let h = 5; h <= 17; h++) {
-                const label = h > 12 ? (h - 12) + ":00" : h + ":00";
-                const suffix = h >= 12 ? "pm" : "am";
-                html += `<div class="hour"><span>${label}${suffix}</span></div>`;
+            let html = `<div class="gantt-header"><div class="gantt-header"><div>Staff</div>`;
+            for (let i = 0; i < 13; i++) {
+                const hour = (i + 5) % 24;
+                const label = hour < 10 ? hour + ":00" : hour + ":00";
+                html += `<div class="hour"><span>${label}</span></div>`;
             }
             html += `</div>`;
 
             if (shifts.length === 0) {
-                html += `<p style="padding:20px;text-align:center;color:#777;">No shifts scheduled today</p>`;
+                html += `<p style="padding:20px; text-align:center; color:#777;">No shifts scheduled today</p>`;
             } else {
-                shifts.sort((a, b) => a.start.localeCompare(b.start));
-                shifts.forEach(s => {
-                    const [sh, sm] = s.start.split(":").map(Number);
-                    const [eh, em] = s.end.split(":").map(Number);
-                    const startDecimal = sh + sm / 60;
-                    const endDecimal = eh + em / 60;
-                    const left = ((startDecimal - 5) / 13) * 100;
-                    const width = ((endDecimal - startDecimal) / 13) * 100;
+                shifts.sort((a,b) => a.start.localeCompare(b.start));
+                shifts.forEach(shift => {
+                    const [sh, sm] = shift.start.split(":").map(Number);
+                    const [eh, em] = shift.end.split(":").map(Number);
+                    const startDecimal = (sh - 7 + sm/60 + 24) % 24;
+                    const endDecimal = (eh - 7 + em/60 + 24) % 24;
+                    const visibleStart = 5;
+                    const visibleHours = 13;
+                    let left = ((startDecimal - visibleStart + 24) % 24) / visibleHours * 100;
+                    let width = ((endDecimal - startDecimal + 24) % 24) / visibleHours * 100;
+                    if (left < 0) left = 0;
+                    if (width < 0) width = 100 + width;
 
-                    html += `
-                    <div class="employee-row">
-                        <div class="employee-name">${s.employee}</div>
+                    html += `<div class="employee-row">
+                        <div class="employee-name">${shift.employee}</div>
                         <div class="timeline">
-                            <div class="shift-bar" style="left:${left}%; width:${width}%;">
-                                ${s.start} – ${s.end}
-                            </div>
+                            <div class="shift-bar" style="left:${left}%; width:${width}%;">${formatMT(shift.start)} – ${formatMT(shift.end)}</div>
                         </div>
                     </div>`;
                 });
             }
-
             document.getElementById("gantt-chart").innerHTML = html;
-            document.getElementById("schedule-container").style.display = "block";
-        })
-        .catch(err => {
-            document.getElementById("gantt-chart").innerHTML = `<p style="padding:20px;color:red;">Error loading schedule</p>`;
             document.getElementById("schedule-container").style.display = "block";
         });
 }
@@ -2091,20 +2095,12 @@ function loadTodaySchedule(store) {
 // Collapsible
 document.getElementById("schedule-h2").addEventListener("click", () => {
     const c = document.getElementById("schedule-container");
-    c.style.display = c.style.display === "none" ? "block" : "none";
+    c.style.display = (c.style.display === "none" || c.style.display === "") ? "block" : "none";
 });
 
-// Load when store changes
-document.getElementById("store-filter").addEventListener("change", () => {
-    const store = document.getElementById("store-filter").value;
-    loadTodaySchedule(store);
-});
-
-// Initial load on page start
-document.addEventListener("DOMContentLoaded", () => {
-    const store = document.getElementById("store-filter").value || "SNOW";
-    loadTodaySchedule(store);
-});
+// Load on store change and on start
+document.getElementById("store-filter").addEventListener("change", () => loadTodaySchedule(document.getElementById("store-filter").value));
+document.addEventListener("DOMContentLoaded", () => loadTodaySchedule(document.getElementById("store-filter").value));
 
 // Load for default store on page load
 loadTodaySchedule(document.getElementById("store-filter").value || "SNOW");
