@@ -2116,6 +2116,92 @@ async function loadTodaySchedule(store) {
         document.getElementById("gantt-chart").innerHTML = "<p style='color:red;padding:20px;'>Failed to load schedule</p>";
         document.getElementById("schedule-container").style.display = "block";
     }
+async function loadTodaySchedule(store) {
+    const today = new Date();
+    const todayShort = today.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+    document.getElementById("schedule-date").textContent = today.toLocaleDateString("en-US", { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
+
+    const tab = scheduleTabs[store] || "Schedule-SNOW";
+
+    // === Store-specific open/close today ===
+    let openHour, closeHour, hoursText;
+    if (store === "CAFE") {
+        openHour = 7; closeHour = 15; hoursText = "Open 7am – 3pm";
+    } else if (store === "FEELLOVE") {
+        const isWeekend = today.getDay() === 0 || today.getDay() === 6;
+        if (isWeekend) { openHour = 7; closeHour = 16; hoursText = "Open 7am – 4pm (Weekend)"; }
+        else { openHour = 6; closeHour = 19; hoursText = "Open 6am – 7pm (Weekday)"; }
+    } else { // SNOW & ZION
+        openHour = 6; closeHour = 17; hoursText = "Open 6am – 5pm";
+    }
+
+    const visibleStart = openHour - 1;
+    const visibleEnd   = closeHour + 1;
+    const visibleHours = visibleEnd - visibleStart;
+
+    try {
+        const resp = await gapi.client.sheets.spreadsheets.values.get({
+            spreadsheetId: SPREADSHEET_ID,
+            range: `${tab}!A:E`
+        });
+        const rows = resp.result.values || [];
+        const shifts = [];
+        for (let i = 1; i < rows.length; i++) {
+            const row = rows[i];
+            if (!row || row.length < 5) continue;
+            if (row[0] === todayShort && row[2]) {
+                shifts.push({
+                    employee: (row[2] + "").replace(/ \(Shift a.*\)/, '').trim(),
+                    start: row[3],
+                    end: row[4]
+                });
+            }
+        }
+
+        // === Header with dynamic columns ===
+        let html = `<div class="gantt-header" style="grid-template-columns: 150px repeat(${visibleHours}, 1fr);">
+            <div>Staff<br><small style="font-weight:normal;color:#ccc;">${hoursText}</small></div>`;
+        for (let i = 0; i < visibleHours; i++) {
+            const hour = (visibleStart + i + 24) % 24;
+            const label = hour < 10 ? ` ${hour}:00` : `${hour}:00`;
+            const isOpen  = hour === openHour;
+            const isClose = hour === closeHour;
+            html += `<div class="hour"${isOpen || isClose ? ' style="position:relative;"' : ''}>
+                        <span>${label}</span>`;
+            if (isOpen || isClose) html += `<div style="position:absolute;top:10px;left:0;right:0;border-right:4px solid #27ae60;"></div>`;
+            html += `</div>`;
+        }
+        html += `</div>`;
+
+        if (shifts.length === 0) {
+            html += `<p style="padding:20px;text-align:center;color:#777;">No shifts scheduled today</p>`;
+        } else {
+            shifts.sort((a, b) => a.start.localeCompare(b.start));
+            shifts.forEach(shift => {
+                const [sh, sm] = shift.start.split(":").map(Number);
+                const [eh, em] = shift.end.split(":").map(Number);
+                const startDecimal = (sh - 7 + sm/60 + 24) % 24;
+                const endDecimal   = (eh - 7 + em/60 + 24) % 24;
+                let left  = ((startDecimal - visibleStart + 24) % 24) / visibleHours * 100;
+                let width = ((endDecimal - startDecimal + 24) % 24) / visibleHours * 100;
+                if (left < 0) { left = 0; width = 100 + width; }
+
+                html += `<div class="employee-row">
+                    <div class="employee-name">${shift.employee}</div>
+                    <div class="timeline">
+                        <div class="shift-bar" style="left:${left}%; width:${width}%;">${formatMT(shift.start)} – ${formatMT(shift.end)}</div>
+                    </div>
+                </div>`;
+            });
+        }
+
+        document.getElementById("gantt-chart").innerHTML = html;
+        document.getElementById("schedule-container").style.display = "block";
+    } catch (err) {
+        console.error("Schedule error:", err);
+        document.getElementById("gantt-chart").innerHTML = "<p style='color:red;padding:20px;'>Failed to load schedule</p>";
+        document.getElementById("schedule-container").style.display = "block";
+    }
 }
 
 // Collapsible
