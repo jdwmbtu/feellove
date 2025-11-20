@@ -2010,7 +2010,7 @@ label: function(context) {
     return;
 }
  
-// ====================== TODAY'S SCHEDULE – USING GAPI (GUARANTEED WORKING) ======================
+// ====================== TODAY'S SCHEDULE – USING GAPI (WORKS EXACTLY LIKE THE REST OF YOUR DASHBOARD) ======================
 const scheduleTabs = {
     CAFE: "Schedule-CAFE",
     FEELLOVE: "Schedule-FEELLOVE",
@@ -2041,19 +2041,17 @@ async function loadTodaySchedule(store) {
         const shifts = [];
 
         for (let i = 1; i < rows.length; i++) {
-            const cols = rows[i];
-            if (!cols || cols.length < 5) continue;
-            const dateCol = cols[0];
-            const employee = (cols[2] || "").replace(/ \(Shift at .*\)/, '').trim();
-            const start = cols[3] || "";
-            const end = cols[4] || "";
-
-            if (dateCol === todayShort && employee) {
-                shifts.push({ employee, start, end });
+            const row = rows[i];
+            if (!row || row.length < 5) continue;
+            if (row[0] === todayShort && row[2]) {
+                shifts.push({
+                    employee: (row[2] + "").replace(/ \(Shift at .*\)/, '').trim(),
+                    start: row[3],
+                    end: row[4]
+                });
             }
         }
 
-        // Build Gantt (exact same as your original)
         let html = `<div class="gantt-header"><div>Staff</div>`;
         for (let i = 0; i < 13; i++) {
             const hour = (i + 5) % 24;
@@ -2063,7 +2061,7 @@ async function loadTodaySchedule(store) {
         html += `</div>`;
 
         if (shifts.length === 0) {
-            html += `<p style="padding:20px; text-align:center; color:#777;">No shifts scheduled today</p>`;
+            html += `<p style="padding:20px;text-align:center;color:#777;">No shifts scheduled today</p>`;
         } else {
             shifts.sort((a, b) => a.start.localeCompare(b.start));
             shifts.forEach(shift => {
@@ -2075,8 +2073,7 @@ async function loadTodaySchedule(store) {
                 const visibleHours = 13;
                 let left = ((startDecimal - visibleStart + 24) % 24) / visibleHours * 100;
                 let width = ((endDecimal - startDecimal + 24) % 24) / visibleHours * 100;
-                if (left < 0) left = 0;
-                if (width < 0) width = 100 + width;
+                if (left < 0) { left = 0; width = 100 + width; }
 
                 html += `<div class="employee-row">
                     <div class="employee-name">${shift.employee}</div>
@@ -2090,7 +2087,7 @@ async function loadTodaySchedule(store) {
         document.getElementById("gantt-chart").innerHTML = html;
         document.getElementById("schedule-container").style.display = "block";
     } catch (err) {
-        console.error("Schedule load error:", err);
+        console.error("Schedule error:", err);
         document.getElementById("gantt-chart").innerHTML = "<p style='color:red;padding:20px;'>Failed to load schedule</p>";
         document.getElementById("schedule-container").style.display = "block";
     }
@@ -2102,29 +2099,17 @@ document.getElementById("schedule-h2").addEventListener("click", () => {
     c.style.display = c.style.display === "block" ? "none" : "block";
 });
 
-// Reload when store changes
+// Reload schedule when store changes
 document.getElementById("store-filter").addEventListener("change", () => {
     loadTodaySchedule(document.getElementById("store-filter").value);
 });
 
-// Load once after main data is ready
-function startScheduleAfterData() {
-    const store = document.getElementById("store-filter").value || "SNOW";
-    loadTodaySchedule(store);
-}
-
-// Hook into your existing update flow
+// Run after main data is loaded (hook into your existing flow)
 const originalUpdateTables = updateTables;
-updateTables = function() {
+updateTables = function () {
     originalUpdateTables.apply(this, arguments);
-    startScheduleAfterData();  // refresh schedule every time tables update
+    loadTodaySchedule(document.getElementById("store-filter").value);
 };
-
-// Initial load (will run after gapi data loads)
-document.addEventListener("DOMContentLoaded", () => {
-    setTimeout(startScheduleAfterData, 3000); // small delay to ensure gapi is ready
-});
-
 
 
 // For other rows, extend similarly (e.g., if (rowKey === 'mtd-growth') { ... })
