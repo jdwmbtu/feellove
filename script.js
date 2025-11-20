@@ -2051,7 +2051,7 @@ if (lastSalesDate) {
 }
 
 document.getElementById("schedule-date").textContent = 
-    "Next Day Schedule – " + scheduleDate.toLocaleDateString("en-US", { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
+    "Schedule – " + scheduleDate.toLocaleDateString("en-US", { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
 
 const todayShort = scheduleDate.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
 
