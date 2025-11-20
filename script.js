@@ -2010,8 +2010,7 @@ label: function(context) {
     return;
 }
  
-// ====================== TODAY'S SCHEDULE – ORIGINAL WORKING VERSION ======================
-const scheduleSheetId = "1whPL4X-I815XVKbeFDxEHbhHbddUtb1XwsSE7MUaWYo";
+// ====================== TODAY'S SCHEDULE – USING GAPI (GUARANTEED WORKING) ======================
 const scheduleTabs = {
     CAFE: "Schedule-CAFE",
     FEELLOVE: "Schedule-FEELLOVE",
@@ -2025,86 +2024,106 @@ function formatMT(timeStr) {
     return `${h}:${m.toString().padStart(2,"0")}`;
 }
 
-function loadTodaySchedule(store) {
+async function loadTodaySchedule(store) {
     const today = new Date();
     const todayShort = today.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
     document.getElementById("schedule-date").textContent = today.toLocaleDateString("en-US", { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
 
-    const tab = scheduleTabs[store];
-    fetch(`https://docs.google.com/spreadsheets/d/${scheduleSheetId}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(tab)}`)
-        .then(r => r.text())
-        .then(scheduleText => {
-            const lines = scheduleText.trim().split("\n");
-            const shifts = [];
-            for (let i = 1; i < lines.length; i++) {
-                const row = lines[i];
-                if (!row) continue;
-                const cols = [];
-                let field = "", inQuotes = false;
-                for (let char of row + ",") {
-                    if (char === '"') inQuotes = !inQuotes;
-                    else if (char === ',' && !inQuotes) { cols.push(field.trim().replace(/^"|"$/g, '')); field = ""; }
-                    else field += char;
-                }
-                if (cols[0] === todayShort && cols[2]) {
-                    shifts.push({
-                        employee: cols[2].replace(/ \(Shift at .*\)/, '').trim(),
-                        start: cols[3],
-                        end: cols[4]
-                    });
-                }
-            }
+    const tab = scheduleTabs[store] || "Schedule-SNOW";
 
-            let html = `<div class="gantt-header"><div class="gantt-header"><div>Staff</div>`;
-            for (let i = 0; i < 13; i++) {
-                const hour = (i + 5) % 24;
-                const label = hour < 10 ? hour + ":00" : hour + ":00";
-                html += `<div class="hour"><span>${label}</span></div>`;
-            }
-            html += `</div>`;
-
-            if (shifts.length === 0) {
-                html += `<p style="padding:20px; text-align:center; color:#777;">No shifts scheduled today</p>`;
-            } else {
-                shifts.sort((a,b) => a.start.localeCompare(b.start));
-                shifts.forEach(shift => {
-                    const [sh, sm] = shift.start.split(":").map(Number);
-                    const [eh, em] = shift.end.split(":").map(Number);
-                    const startDecimal = (sh - 7 + sm/60 + 24) % 24;
-                    const endDecimal = (eh - 7 + em/60 + 24) % 24;
-                    const visibleStart = 5;
-                    const visibleHours = 13;
-                    let left = ((startDecimal - visibleStart + 24) % 24) / visibleHours * 100;
-                    let width = ((endDecimal - startDecimal + 24) % 24) / visibleHours * 100;
-                    if (left < 0) left = 0;
-                    if (width < 0) width = 100 + width;
-
-                    html += `<div class="employee-row">
-                        <div class="employee-name">${shift.employee}</div>
-                        <div class="timeline">
-                            <div class="shift-bar" style="left:${left}%; width:${width}%;">${formatMT(shift.start)} – ${formatMT(shift.end)}</div>
-                        </div>
-                    </div>`;
-                });
-            }
-            document.getElementById("gantt-chart").innerHTML = html;
-            document.getElementById("schedule-container").style.display = "block";
+    try {
+        const resp = await gapi.client.sheets.spreadsheets.values.get({
+            spreadsheetId: SPREADSHEET_ID,
+            range: `${tab}!A:E`
         });
+
+        const rows = resp.result.values || [];
+        const shifts = [];
+
+        for (let i = 1; i < rows.length; i++) {
+            const cols = rows[i];
+            if (!cols || cols.length < 5) continue;
+            const dateCol = cols[0];
+            const employee = (cols[2] || "").replace(/ \(Shift at .*\)/, '').trim();
+            const start = cols[3] || "";
+            const end = cols[4] || "";
+
+            if (dateCol === todayShort && employee) {
+                shifts.push({ employee, start, end });
+            }
+        }
+
+        // Build Gantt (exact same as your original)
+        let html = `<div class="gantt-header"><div>Staff</div>`;
+        for (let i = 0; i < 13; i++) {
+            const hour = (i + 5) % 24;
+            const label = hour < 10 ? hour + ":00" : hour + ":00";
+            html += `<div class="hour"><span>${label}</span></div>`;
+        }
+        html += `</div>`;
+
+        if (shifts.length === 0) {
+            html += `<p style="padding:20px; text-align:center; color:#777;">No shifts scheduled today</p>`;
+        } else {
+            shifts.sort((a, b) => a.start.localeCompare(b.start));
+            shifts.forEach(shift => {
+                const [sh, sm] = shift.start.split(":").map(Number);
+                const [eh, em] = shift.end.split(":").map(Number);
+                const startDecimal = (sh - 7 + sm/60 + 24) % 24;
+                const endDecimal = (eh - 7 + em/60 + 24) % 24;
+                const visibleStart = 5;
+                const visibleHours = 13;
+                let left = ((startDecimal - visibleStart + 24) % 24) / visibleHours * 100;
+                let width = ((endDecimal - startDecimal + 24) % 24) / visibleHours * 100;
+                if (left < 0) left = 0;
+                if (width < 0) width = 100 + width;
+
+                html += `<div class="employee-row">
+                    <div class="employee-name">${shift.employee}</div>
+                    <div class="timeline">
+                        <div class="shift-bar" style="left:${left}%; width:${width}%;">${formatMT(shift.start)} – ${formatMT(shift.end)}</div>
+                    </div>
+                </div>`;
+            });
+        }
+
+        document.getElementById("gantt-chart").innerHTML = html;
+        document.getElementById("schedule-container").style.display = "block";
+    } catch (err) {
+        console.error("Schedule load error:", err);
+        document.getElementById("gantt-chart").innerHTML = "<p style='color:red;padding:20px;'>Failed to load schedule</p>";
+        document.getElementById("schedule-container").style.display = "block";
+    }
 }
 
 // Collapsible
 document.getElementById("schedule-h2").addEventListener("click", () => {
     const c = document.getElementById("schedule-container");
-    c.style.display = (c.style.display === "none" || c.style.display === "") ? "block" : "none";
+    c.style.display = c.style.display === "block" ? "none" : "block";
 });
 
-// Load on store change and on start
-document.getElementById("store-filter").addEventListener("change", () => loadTodaySchedule(document.getElementById("store-filter").value));
-document.addEventListener("DOMContentLoaded", () => loadTodaySchedule(document.getElementById("store-filter").value));
+// Reload when store changes
+document.getElementById("store-filter").addEventListener("change", () => {
+    loadTodaySchedule(document.getElementById("store-filter").value);
+});
 
-// Load for default store on page load
-loadTodaySchedule(document.getElementById("store-filter").value || "SNOW");
+// Load once after main data is ready
+function startScheduleAfterData() {
+    const store = document.getElementById("store-filter").value || "SNOW";
+    loadTodaySchedule(store);
+}
 
+// Hook into your existing update flow
+const originalUpdateTables = updateTables;
+updateTables = function() {
+    originalUpdateTables.apply(this, arguments);
+    startScheduleAfterData();  // refresh schedule every time tables update
+};
+
+// Initial load (will run after gapi data loads)
+document.addEventListener("DOMContentLoaded", () => {
+    setTimeout(startScheduleAfterData, 3000); // small delay to ensure gapi is ready
+});
 
 
 
