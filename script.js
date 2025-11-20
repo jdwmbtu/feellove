@@ -2042,10 +2042,16 @@ function formatMT(timeStr) {
 
 async function loadTodaySchedule(store) {
     // Use the very last date that has any sales data for the selected store
-const lastDate = getLastDataDate(store, '');   // '' = no month filter
-const today = lastDate ? new Date(lastDate) : new Date();  // fallback to real today if no data
-const todayShort = today.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
-document.getElementById("schedule-date").textContent = today.toLocaleDateString("en-US", { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
+const store = document.getElementById('store-filter').value || 'CAFE';
+const lastSalesDate = getLastDataDate(store, '');   // your existing function – last day with net sales
+
+let scheduleDate = new Date();   // fallback if no data
+if (lastSalesDate) {
+    scheduleDate = new Date(lastSalesDate);
+    scheduleDate.setDate(scheduleDate.getDate() + 1);  // day after last sales
+}
+
+const todayShort = scheduleDate.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
 
     const tab = scheduleTabs[store] || "Schedule-SNOW";
 
