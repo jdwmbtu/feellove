@@ -2042,7 +2042,6 @@ function formatMT(timeStr) {
 
 async function loadTodaySchedule(store) {
     // Use the very last date that has any sales data for the selected store
-const store = document.getElementById('store-filter').value || 'CAFE';
 const lastDate = getLastDataDate(store, '');   // '' = no month filter
 const today = lastDate ? new Date(lastDate) : new Date();  // fallback to real today if no data
 const todayShort = today.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
