@@ -2045,40 +2045,17 @@ async function loadTodaySchedule(store) {
     const todayShort = today.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
     document.getElementById("schedule-date").textContent = today.toLocaleDateString("en-US", { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
 
-    const tab = scheduleTabs[store] || "Schedule-FEELLOVE";
-
-    // === Determine opening hours for today ===
-    let openTime, closeTime;
-    if (store === "FEELLOVE") {
-        const isWeekend = today.getDay() === 0 || today.getDay() === 6; // Sun=0, Sat=6
-        const hours = isWeekend ? storeHours.FEELLOVE.weekend : storeHours.FEELLOVE.weekday;
-        openTime = hours.open;
-        closeTime = hours.close;
-    } else {
-        const hours = storeHours[store];
-        openTime = hours.open;
-        closeTime = hours.close;
-    }
-
-    // Parse to minutes since midnight
-    const [openH, openM] = openTime.split(":").map(Number);
-    const [closeH, closeM] = closeTime.split(":").map(Number);
-    let startHour = openH - 1;           // 1 hour before open
-    let endHour = closeH + 1 + (closeM > 0 ? 1 : 0); // 1 hour after close (round up if minutes)
-
-    if (startHour < 0) startHour += 24;
-    if (endHour > 24) endHour = 24;
-
-    const visibleHours = endHour - startHour;
-    if (visibleHours <= 0) visibleHours += 24;
+    const tab = scheduleTabs[store] || "Schedule-SNOW";
 
     try {
         const resp = await gapi.client.sheets.spreadsheets.values.get({
             spreadsheetId: SPREADSHEET_ID,
             range: `${tab}!A:E`
         });
+
         const rows = resp.result.values || [];
         const shifts = [];
+
         for (let i = 1; i < rows.length; i++) {
             const row = rows[i];
             if (!row || row.length < 5) continue;
@@ -2091,18 +2068,11 @@ async function loadTodaySchedule(store) {
             }
         }
 
-        let html = `<div class="gantt-header" style="grid-template-columns: 150px repeat(${visibleHours}, 1fr);">`;
-        html += `<div>Staff</div>`;
-        for (let h = 0; h < visibleHours; h++) {
-            const hour = (startHour + h) % 24;
-            const label = hour < 10 ? `${hour}:00` : `${hour}:00`;
-            const isOpenHour = hour === openH;
-            const isCloseHour = hour === closeH;
-            html += `<div class="hour"${isOpenHour || isCloseHour ? ' style="position:relative;"' : ''}>`;
-            html += `<span>${label}</span>`;
-            if (isOpenHour) html += `<div style="position:absolute;top:10px;left:0;right:0;border-left:4px solid #27ae60;"></div>`;
-            if (isCloseHour) html += `<div style="position:absolute;top:10px;left:0;right:0;border-left:4px solid #27ae60;"></div>`;
-            html += `</div>`;
+        let html = `<div class="gantt-header"><div>Staff</div>`;
+        for (let i = 0; i < 13; i++) {
+            const hour = (i + 5) % 24;
+            const label = hour < 10 ? hour + ":00" : hour + ":00";
+            html += `<div class="hour"><span>${label}</span></div>`;
         }
         html += `</div>`;
 
@@ -2110,42 +2080,32 @@ async function loadTodaySchedule(store) {
             html += `<p style="padding:20px;text-align:center;color:#777;">No shifts scheduled today</p>`;
         } else {
             shifts.sort((a, b) => a.start.localeCompare(b.start));
-shifts.sort((a, b) => a.start.localeCompare(b.start));
-shifts.forEach(shift => {
-    const [sh, sm] = shift.start.split(":").map(Number);
-    const [eh, em] = shift.end.split(":").map(Number);
-    const startDecimal = sh + sm / 60;
-    const endDecimal = eh + em / 60;
+            shifts.forEach(shift => {
+                const [sh, sm] = shift.start.split(":").map(Number);
+                const [eh, em] = shift.end.split(":").map(Number);
+                const startDecimal = (sh - 7 + sm/60 + 24) % 24;
+                const endDecimal = (eh - 7 + em/60 + 24) % 24;
+                const visibleStart = 5;
+                const visibleHours = 13;
+                let left = ((startDecimal - visibleStart + 24) % 24) / visibleHours * 100;
+                let width = ((endDecimal - startDecimal + 24) % 24) / visibleHours * 100;
+                if (left < 0) { left = 0; width = 100 + width; }
 
-    // Correctly handle shifts that cross midnight if needed (rare, but safe)
-    let duration = endDecimal - startDecimal;
-    if (duration < 0) duration += 24;
-
-    let left = ((startDecimal - startHour + 24) % 24) / visibleHours * 100;
-    let width = duration / visibleHours * 100;
-
-    // Clamp to visible area
-    if (left < 0) {
-        width += left * (visibleHours / duration);
-        left = 0;
-    }
-    if (left + width > 100) width = 100 - left;
-
-    html += `<div class="employee-row">
-        <div class="employee-name">${shift.employee}</div>
-        <div class="timeline">
-            <div class="shift-bar" style="left:${left}%; width:${width}%;">${shift.start} – ${shift.end}</div>
-        </div>
-    </div>`;
-});
+                html += `<div class="employee-row">
+                    <div class="employee-name">${shift.employee}</div>
+                    <div class="timeline">
+                        <div class="shift-bar" style="left:${left}%; width:${width}%;">${formatMT(shift.start)} – ${formatMT(shift.end)}</div>
+                    </div>
+                </div>`;
+            });
         }
 
         document.getElementById("gantt-chart").innerHTML = html;
         document.getElementById("schedule-container").style.display = "block";
-
     } catch (err) {
         console.error("Schedule error:", err);
         document.getElementById("gantt-chart").innerHTML = "<p style='color:red;padding:20px;'>Failed to load schedule</p>";
+        document.getElementById("schedule-container").style.display = "block";
     }
 }
 
