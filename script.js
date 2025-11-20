@@ -2023,6 +2023,17 @@ const scheduleTabs = {
     ZION: "Schedule-ZION"
 };
 
+// Store-specific opening hours (24-hour format, strings are fine)
+const storeHours = {
+    CAFE:     { open: "07:00", close: "15:00" },   // 7am – 3pm daily
+    FEELLOVE: { 
+        weekday: { open: "06:00", close: "19:00" },  // Mon–Fri 6am – 7pm
+        weekend: { open: "07:00", close: "16:00" }   // Sat–Sun 7am – 4pm
+    },
+    SNOW:     { open: "06:00", close: "17:00" },   // 6am – 5pm daily
+    ZION:     { open: "06:00", close: "17:00" }    // 6am – 5pm daily
+};
+
 function formatMT(timeStr) {
     let [h, m] = timeStr.split(":").map(Number);
     h = (h - 7 + 24) % 24;
