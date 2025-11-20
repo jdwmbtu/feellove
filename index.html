@@ -158,8 +158,8 @@
             content: ''; position: absolute; top: 10px; left: 0; right: 0; height: 100%;
             border-left: 1px dotted #aaa;
         }
-        .hour:nth-child(2)::after { border-right: 3px solid #27ae60; } /* 6am */
-        .hour:nth-last-child(2)::after { border-right: 3px solid #27ae60; } /* 5pm */
+        .hour:nth-child(2)::after { border-left: 3px solid #27ae60; } /* 6am */
+        .hour:nth-last-child(2)::after { border-left: 3px solid #27ae60; } /* 5pm */
 
         .employee-row {
             display: grid;
@@ -195,10 +195,11 @@
 </head>
 <body>
 
-<h2>FeelLove Dashboard - <span id="schedule-date">loading…</span></h2>
+<h1>FeelLove Coffee</h1>
 <a href="summary_dashboard.html" style="display: inline-block; padding: 10px 20px; background: #3498db; color: white; text-decoration: none; border-radius: 4px; margin: 5px;">View All Store Summary Dashboard</a>
 
 <!-- TODAY'S SCHEDULE SECTION -->
+<h2 id="schedule-h2" class="clickable">Today’s Schedule – <span id="schedule-date">loading…</span></h2>
 <div id="schedule-container" style="display: block;">
     <div id="gantt-chart" class="gantt">Loading schedule…</div>
 </div>
