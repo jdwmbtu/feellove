@@ -2010,6 +2010,11 @@ label: function(context) {
     return;
 }
  
+
+
+// For other rows, extend similarly (e.g., if (rowKey === 'mtd-growth') { ... })
+}
+
 // ====================== TODAY'S SCHEDULE – USING GAPI (WORKS EXACTLY LIKE THE REST OF YOUR DASHBOARD) ======================
 const scheduleTabs = {
     CAFE: "Schedule-CAFE",
@@ -2110,7 +2115,3 @@ updateTables = function () {
     originalUpdateTables.apply(this, arguments);
     loadTodaySchedule(document.getElementById("store-filter").value);
 };
-
-
-// For other rows, extend similarly (e.g., if (rowKey === 'mtd-growth') { ... })
-}
