@@ -2110,26 +2110,34 @@ async function loadTodaySchedule(store) {
             html += `<p style="padding:20px;text-align:center;color:#777;">No shifts scheduled today</p>`;
         } else {
             shifts.sort((a, b) => a.start.localeCompare(b.start));
-            shifts.forEach(shift => {
-                const [sh, sm] = shift.start.split(":").map(Number);
-                const [eh, em] = shift.end.split(":").map(Number);
-                const startDecimal = sh + sm/60;
-                const endDecimal = eh + em/60;
-                let left = ((startDecimal - startHour + 24) % 24) / visibleHours * 100;
-                let width = ((endDecimal - startDecimal + 24) % 24) / visibleHours * 100;
+shifts.sort((a, b) => a.start.localeCompare(b.start));
+shifts.forEach(shift => {
+    const [sh, sm] = shift.start.split(":").map(Number);
+    const [eh, em] = shift.end.split(":").map(Number);
+    const startDecimal = sh + sm / 60;
+    const endDecimal = eh + em / 60;
 
-                if (left < 0) { left = 0; width = 100 + width; }
-                if (left + width > 100) width = 100 - left;
+    // Correctly handle shifts that cross midnight if needed (rare, but safe)
+    let duration = endDecimal - startDecimal;
+    if (duration < 0) duration += 24;
 
-                html += `<div class="employee-row" style="grid-template-columns: 150px 1fr;">
-                    <div class="employee-name">${shift.employee}</div>
-                    <div class="timeline">
-                        <div class="shift-bar" style="left:${left}%; width:${width}%;">
-                            ${shift.start} – ${shift.end}
-                        </div>
-                    </div>
-                </div>`;
-            });
+    let left = ((startDecimal - startHour + 24) % 24) / visibleHours * 100;
+    let width = duration / visibleHours * 100;
+
+    // Clamp to visible area
+    if (left < 0) {
+        width += left * (visibleHours / duration);
+        left = 0;
+    }
+    if (left + width > 100) width = 100 - left;
+
+    html += `<div class="employee-row">
+        <div class="employee-name">${shift.employee}</div>
+        <div class="timeline">
+            <div class="shift-bar" style="left:${left}%; width:${width}%;">${shift.start} – ${shift.end}</div>
+        </div>
+    </div>`;
+});
         }
 
         document.getElementById("gantt-chart").innerHTML = html;
