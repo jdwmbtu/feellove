@@ -2042,7 +2042,6 @@ function formatMT(timeStr) {
 
 async function loadTodaySchedule(store) {
     // Use the very last date that has any sales data for the selected store
-const store = document.getElementById('store-filter').value || 'CAFE';
 const lastSalesDate = getLastDataDate(store, '');   // your existing function – last day with net sales
 
 let scheduleDate = new Date();   // fallback if no data
