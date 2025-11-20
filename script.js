@@ -2041,7 +2041,8 @@ function formatMT(timeStr) {
 }
 
 async function loadTodaySchedule(store) {
-    const today = new Date();
+    const lastDataDate = getLastDataDate(document.getElementById('store-filter').value || 'CAFE', '');
+    const today = lastDataDate || new Date();  // fallback to real today if no data yet
     const todayShort = today.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
     document.getElementById("schedule-date").textContent = today.toLocaleDateString("en-US", { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
 
