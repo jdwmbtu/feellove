@@ -2061,7 +2061,7 @@ async function loadTodaySchedule(store) {
             if (!row || row.length < 5) continue;
             if (row[0] === todayShort && row[2]) {
                 shifts.push({
-                    employee: (row[2] + "").replace(/ \(Shift at .*\)/, '').trim(),
+                    employee: (row[2] + "").replace(/ \(Shift a.*\)/, '').trim(),
                     start: row[3],
                     end: row[4]
                 });
