@@ -2047,6 +2047,15 @@ async function loadTodaySchedule(store) {
 
     const tab = scheduleTabs[store] || "Schedule-SNOW";
 
+    // === Opening hours text for header ===
+    let hoursText = "";
+    if (store === "CAFE") hoursText = "Open 7am – 3pm";
+    else if (store === "FEELLOVE") {
+        const isWeekend = today.getDay() === 0 || today.getDay() === 6;
+        hoursText = isWeekend ? "Open 7am – 4pm (Weekend)" : "Open 6am – 7pm (Weekday)";
+    }
+    else if (store === "SNOW" || store === "ZION") hoursText = "Open 6am – 5pm";
+
     try {
         const resp = await gapi.client.sheets.spreadsheets.values.get({
             spreadsheetId: SPREADSHEET_ID,
@@ -2068,7 +2077,7 @@ async function loadTodaySchedule(store) {
             }
         }
 
-        let html = `<div class="gantt-header"><div>Staff</div>`;
+        let html = `<div class="gantt-header"><div>Staff<br><small style="font-weight:normal;color:#ccc;">${hoursText}</small></div>`;
         for (let i = 0; i < 13; i++) {
             const hour = (i + 5) % 24;
             const label = hour < 10 ? hour + ":00" : hour + ":00";
