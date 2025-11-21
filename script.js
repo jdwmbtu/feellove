@@ -1627,13 +1627,11 @@ function updateSummaryTable(store, month) {
         tr.innerHTML = `
             <td onclick="updateChartForSummaryRow('next-day')" style="padding:3px; cursor: pointer; font-weight: bold; text-decoration: underline; color: #3498db;" onmouseover="this.style.textDecoration='none'; this.style.color='#2980b9';" onmouseout="this.style.textDecoration='underline'; this.style.color='#3498db';">${metric}</td>
             <td style="text-align:center; padding:6px; font-weight:500;">${value}</td>
-            <td style="padding:3px; color:#666; font-size: small; font-style:italic;">${source}</td>
         `;
     } else if (metric === "MTD Growth") {
         tr.innerHTML = `
             <td onclick="updateChartForSummaryRow('mtd-growth')" style="padding:3px; cursor: pointer; font-weight: bold; text-decoration: underline; color: #3498db;" onmouseover="this.style.textDecoration='none'; this.style.color='#2980b9';" onmouseout="this.style.textDecoration='underline'; this.style.color='#3498db';">${metric}</td>
             <td style="text-align:center; padding:6px; font-weight:500;">${value}</td>
-            <td style="padding:3px; color:#666; font-size: small; font-style:italic;">${source}</td>
         `;
         
     } 
@@ -1642,7 +1640,6 @@ function updateSummaryTable(store, month) {
     tr.innerHTML = `
         <td onclick="updateChartForSummaryRow('remaining-target')" style="padding:3px; cursor: pointer; font-weight: bold; text-decoration: underline; color: #3498db;" onmouseover="this.style.textDecoration='none'; this.style.color='#2980b9';" onmouseout="this.style.textDecoration='underline'; this.style.color='#3498db';">${metric}</td>
         <td style="text-align:center; padding:6px; font-weight:500;">${value}</td>
-        <td style="padding:3px; color:#666; font-size: small; font-style:italic;">${source}</td>
     `;
     
     }
@@ -1651,7 +1648,6 @@ function updateSummaryTable(store, month) {
         tr.innerHTML = `
             <td style="padding:3px;">${metric}</td>
             <td style="text-align:center; padding:6px; font-weight:500;">${value}</td>
-            <td style="padding:3px; color:#666; font-size: small; font-style:italic;">${source}</td>
         `;
     }
     tbody.appendChild(tr);
