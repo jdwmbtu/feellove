@@ -2054,7 +2054,7 @@ async function loadTodaySchedule(store) {
 
     const todayShort = scheduleDate.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
     document.getElementById("schedule-date").textContent = 
-        "Next Day Schedule – " + scheduleDate.toLocaleDateString("en-US", { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
+        " – " + scheduleDate.toLocaleDateString("en-US", { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
 
     const tab = scheduleTabs[storeKey] || "Schedule-SNOW";
 
