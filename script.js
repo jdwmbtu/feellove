@@ -2041,28 +2041,33 @@ function formatMT(timeStr) {
 }
 
 async function loadTodaySchedule(store) {
-    // Use the very last date that has any sales data for the selected store
-const lastSalesDate = getLastDataDate(store, '');   // your existing function – last day with net sales
+    const storeKey = store || 'CAFE';
 
-let scheduleDate = new Date();   // fallback if no data
-if (lastSalesDate) {
-    scheduleDate = new Date(lastSalesDate);
-    scheduleDate.setDate(scheduleDate.getDate() + 1);  // day after last sales
-}
+    // === Determine the date for the schedule (day after last sales) ===
+    const lastSalesDate = getLastDataDate(storeKey, '');   // your existing function
+    let scheduleDate = new Date();
+    if (lastSalesDate) {
+        scheduleDate = new Date(lastSalesDate);
+        scheduleDate.setDate(scheduleDate.getDate() + 1);  // day after last sales
+    } else {
+        scheduleDate.setDate(scheduleDate.getDate() + 1);  // tomorrow if no data
+    }
 
-document.getElementById("schedule-date").textContent = 
-    "" + scheduleDate.toLocaleDateString("en-US", { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
+    // === today for weekend check (real today in MT) ===
+    const today = new Date();   // ← this line was missing – fixes weekend detection
 
-const todayShort = scheduleDate.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+    const todayShort = scheduleDate.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+    document.getElementById("schedule-date").textContent = 
+        "Next Day Schedule – " + scheduleDate.toLocaleDateString("en-US", { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
 
-    const tab = scheduleTabs[store] || "Schedule-SNOW";
+    const tab = scheduleTabs[storeKey] || "Schedule-SNOW";
 
     // === Store-specific open/close today ===
     let openHour, closeHour, hoursText;
-    if (store === "CAFE") {
+    if (storeKey === "CAFE") {
         openHour = 7; closeHour = 15; hoursText = "Open 7am – 3pm";
-    } else if (store === "FEELLOVE") {
-        const isWeekend = today.getDay() === 0 || today.getDay() === 6;
+    } else if (storeKey === "FEELLOVE") {
+        const isWeekend = today.getDay() === 0 || today.getDay() === 6;   // ← now works!
         if (isWeekend) { openHour = 7; closeHour = 16; hoursText = "Open 7am – 4pm (Weekend)"; }
         else { openHour = 6; closeHour = 19; hoursText = "Open 6am – 7pm (Weekday)"; }
     } else { // SNOW & ZION
@@ -2070,7 +2075,7 @@ const todayShort = scheduleDate.toLocaleDateString("en-US", { month: "short", da
     }
 
     const visibleStart = openHour - 1;
-    const visibleEnd   = closeHour + 1;
+    const visibleEnd = closeHour + 1;
     const visibleHours = visibleEnd - visibleStart;
 
     try {
