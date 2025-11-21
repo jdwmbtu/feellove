@@ -7,13 +7,41 @@
     <script src="https://apis.google.com/js/api.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        body { font-family: Arial, sans-serif; text-align: center; background: #f8f9fa; }
+        body { font-family: Arial, sans-serif; text-align: center; background: #f8f9fa; margin: 0; padding: 20px; }
         h1 { margin: 20px 0; color: #2c3e50; }
-        h2, h3 { color: #34495e; }
         h2.clickable { cursor: pointer; }
         h2.clickable:hover { text-decoration: underline; color: #3498db; }
 
-        /* Base table style */
+        /* Controls at top */
+        #controls-container {
+            max-width: 500px;
+            margin: 20px auto;
+            padding: 15px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        /* Side-by-side row for Schedule + Summary */
+        .top-row {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin: 30px 0;
+        }
+        .left-panel, .right-panel {
+            flex: 1;
+            min-width: 300px;
+            max-width: 700px;
+        }
+
+        /* Full-width sections */
+        .full-width {
+            max-width: 1200px;
+            margin: 40px auto;
+        }
+
         .data-table {
             margin: 10px auto;
             border-collapse: collapse;
@@ -28,120 +56,13 @@
             padding: 8px;
             text-align: center;
         }
-        .data-table th {
-            background: #e0e0e0;
-            font-weight: bold;
-        }
+        .data-table th { background: #e0e0e0; font-weight: bold; }
         .data-table tr:nth-child(even) { background-color: #f9f9f9; }
         .data-table tr:hover { background-color: #fffacd !important; }
-
         .negative { color: red; }
 
-        /* Controls */
-        .controls { margin: 10px 0; }
-        .toggle-btn {
-            margin: 10px;
-            padding: 6px 12px;
-            cursor: pointer;
-            background-color: #3498db;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            font-weight: bold;
-        }
-        .toggle-btn:hover { background-color: #2980b9; }
-
-        /* Layout containers */
-        .top-row, .middle-row {
-            display: flex;
-            gap: 20px;
-            justify-content: center;
-            flex-wrap: wrap;
-            margin: 20px 0;
-        }
-        .left-panel, .right-panel {
-            flex: 1;
-            min-width: 300px;
-        }
-        .left-panel { max-width: 400px; }
-        .right-panel { min-width: 500px; }
-
-        /* Scrollable tables */
-        .scrollable {
-            max-height: 320px;
-            overflow-y: auto;
-            border: 1px solid #ddd;
-            border-radius: 6px;
-        }
-
-        /* Metrics table - enhanced */
-        #metrics-table th {
-            background: #d0d0d0 !important;
-            font-size: 1.1em;
-            border-bottom: 2px solid #777;
-        }
-        #metrics-table th[colspan] {
-            background: #c0c0c0 !important;
-        }
-        #metrics-table td:nth-child(2), #metrics-table td:nth-child(6), #metrics-table td:nth-child(10) {
-            background-color: #f0f8ff;
-        }
-        #metrics-table td:nth-child(3), #metrics-table td:nth-child(7), #metrics-table td:nth-child(11) {
-            background-color: #f0fff0;
-        }
-        #metrics-table td:nth-child(4), #metrics-table td:nth-child(8), #metrics-table td:nth-child(12) {
-            background-color: #fffbe6;
-        }
-        #metrics-table td:nth-child(5), #metrics-table td:nth-child(9), #metrics-table td:nth-child(13) {
-            background-color: #fff5e6;
-            font-weight: 500;
-        }
-        #metrics-table td:nth-child(5), #metrics-table td:nth-child(9) {
-            border-right: 2px solid #999;
-        }
-
-        /* Summary table */
-        #summary-table th {
-            background: #e0e0e0 !important;
-            font-weight: bold;
-            text-align: center;
-            padding: 10px 12px;
-        }
-        #summary-table td {
-            padding: 8px 12px;
-        }
-
-        /* Status */
-        #status-cell {
-            font-weight: bold;
-            color: #0066cc;
-            padding: 8px 0;
-        }
-
-        /* Chart Container */
-        #chart-container {
-            margin: 20px auto;
-            width: 90%;
-            max-width: 800px;
-            height: 400px;
-            background: white;
-            border-radius: 8px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-            padding: 10px;
-            display: none;
-        }
-
-        /* RESPONSIVE */
-        @media (max-width: 768px) {
-            .data-table { font-size: 0.75em; }
-            .scrollable { max-height: 280px; overflow-x: auto; -webkit-overflow-scrolling: touch; }
-            .top-row, .middle-row { flex-direction: column; }
-            .left-panel, .right-panel { min-width: 100%; max-width: 100%; }
-            #chart-container { height: 300px; }
-        }
-
-        /* ─────── TODAY'S SCHEDULE GANTT (new) ─────── */
-        #schedule-container { margin: 20px auto; max-width: 1000px; background: white; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); overflow: hidden; }
+        /* Schedule Gantt */
+        #schedule-container { margin: 20px 0; background: white; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); overflow: hidden; }
         .gantt-header {
             display: grid;
             grid-template-columns: 150px repeat(13, 1fr);
@@ -154,42 +75,19 @@
         .gantt-header > div { text-align: center; padding: 8px 4px; font-size: 0.9em; }
         .hour { position: relative; }
         .hour span { position: absolute; bottom: 4px; left: 50%; transform: translateX(-50%); font-size: 0.85em; }
-        .hour::after {
-            content: ''; position: absolute; top: 10px; left: 0; right: 0; height: 100%;
-            border-left: 1px dotted #aaa;
-        }
-        .hour:nth-child(2)::after { border-right: 3px solid #27ae60; } /* 6am */
-        .hour:nth-last-child(2)::after { border-right: 3px solid #27ae60; } /* 5pm */
-
-        .employee-row {
-            display: grid;
-            grid-template-columns: 150px 1fr;
-            align-items: center;
-            gap: 10px;
-            padding: 6px 0;
-            border-bottom: 1px solid #eee;
-        }
+        .hour::after { content: ''; position: absolute; top: 10px; left: 0; right: 0; height: 100%; border-left: 1px dotted #aaa; }
+        .hour:nth-child(2)::after { border-right: 3px solid #27ae60; }
+        .hour:nth-last-child(2)::after { border-right: 3px solid #27ae60; }
+        .employee-row { display: grid; grid-template-columns: 150px 1fr; align-items: center; gap: 10px; padding: 6px 0; border-bottom: 1px solid #eee; }
         .employee-name { font-weight: bold; padding-left: 12px; }
-        .timeline {
-            position: relative;
-            height: 44px;
-            background: #f8f9fa;
-            border-radius: 6px;
-            overflow: hidden;
-        }
-        .shift-bar {
-            position: absolute;
-            top: 4px;
-            height: 36px;
-            background: #3498db;
-            border-radius: 6px;
-            color: white;
-            font-weight: bold;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 0.9em;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+        .timeline { position: relative; height: 44px; background: #f8f9fa; border-radius: 6px; overflow: hidden; }
+        .shift-bar { position: absolute; top: 4px; height: 36px; background: #3498db; border-radius: 6px; color: white; font-weight: bold; display: flex; align-items: center; justify-content: center; font-size: 0.9em; box-shadow: 0 2px 4px rgba(0,0,0,0.15); }
+
+        #chart-container { margin: 20px auto; width: 90%; max-width: 800px; height: 400px; background: white; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); padding: 10px; display: none; }
+
+        @media (max-width: 768px) {
+            .top-row { flex-direction: column; }
+            .left-panel, .right-panel { max-width: 100%; }
         }
     </style>
 </head>
@@ -198,140 +96,114 @@
 <h1>FeelLove Coffee</h1>
 <a href="summary_dashboard.html" style="display: inline-block; padding: 10px 20px; background: #3498db; color: white; text-decoration: none; border-radius: 4px; margin: 5px;">View All Store Summary Dashboard</a>
 
-<!-- TODAY'S SCHEDULE SECTION -->
-<h2 id="schedule-h2" class="clickable">Schedule – <span id="schedule-date">loading…</span></h2>
-<div id="schedule-container" style="display: block;">
-    <div id="gantt-chart" class="gantt">Loading schedule…</div>
+<!-- CONTROLS AT TOP -->
+<div id="controls-container">
+    <table class="data-table" style="font-size: 0.9em;">
+        <tr><td><label for="month-filter">Month:</label></td><td><select id="month-filter" onchange="updateTables()"></select></td></tr>
+        <tr><td><label for="store-filter">Store:</label></td><td>
+            <select id="store-filter" onchange="updateTables()">
+                <option value="CAFE">CAFE</option>
+                <option value="FEELLOVE">FEELLOVE</option>
+                <option value="SNOW">SNOW</option>
+                <option value="ZION">ZION</option>
+            </select>
+        </td></tr>
+        <tr><td><label for="growth-target">Growth Target:</label></td><td>
+            <select id="growth-target" onchange="updateGrowthTarget()">
+                <optgroup label="Percent">
+                    <option value="10">+10%</option><option value="20">+20%</option><option value="25">+25%</option><option value="30">+30%</option>
+                </optgroup>
+                <optgroup label="Dollar ($K)">
+                    <option value="5">+$5K</option><option value="10">+$10K</option><option value="15">+$15K</option><option value="20" selected>+$20K</option><option value="25">+$25K</option>
+                </optgroup>
+            </select>
+        </td></tr>
+        <tr><td><label>Adjusted:</label></td><td><label><input type="checkbox" id="adjusted-toggle" onchange="updateTables()"> Yes</label></td></tr>
+    </table>
 </div>
 
-<!-- TOP ROW: Controls + Summary -->
+<!-- SCHEDULE (left) + SUMMARY (right) -->
 <div class="top-row">
-    <!-- LEFT: Controls -->
     <div class="left-panel">
-        <table class="data-table" style="font-size: 0.9em;">
-            <tr>
-                <td><label for="month-filter">Month:</label></td>
-                <td><select id="month-filter" onchange="updateTables()"></select></td>
-            </tr>
-            <tr>
-                <td><label for="store-filter">Store:</label></td>
-                <td>
-                    <select id="store-filter" onchange="updateTables()">
-                        <option value="CAFE">CAFE</option>
-                        <option value="FEELLOVE">FEELLOVE</option>
-                        <option value="SNOW">SNOW</option>
-                        <option value="ZION">ZION</option>
-                    </select>
-                </td>
-            </tr>
-            <tr>
-                <td><label for="growth-target">Growth Target:</label></td>
-                <td>
-                    <select id="growth-target" onchange="updateGrowthTarget()">
-                        <optgroup label="Percent">
-                            <option value="10">+10%</option>
-                            <option value="20">+20%</option>
-                            <option value="25">+25%</option>
-                            <option value="30">+30%</option>
-                        </optgroup>
-                        <optgroup label="Dollar ($K)">
-                            <option value="5">+$5K</option>
-                            <option value="10">+$10K</option>
-                            <option value="15">+$15K</option>
-                            <option value="20" selected>+$20K</option>
-                            <option value="25">+$25K</option>
-                        </optgroup>
-                    </select>
-                </td>
-            </tr>
-            <tr>
-                <td><label>Adjusted:</label></td>
-                <td><label><input type="checkbox" id="adjusted-toggle" onchange="updateTables()"> Yes</label></td>
-            </tr>
-        </table>
+        <h2 id="schedule-h2" class="clickable">Next Day Schedule – <span id="schedule-date">loading…</span></h2>
+        <div id="schedule-container" style="display: block;">
+            <div id="gantt-chart" class="gantt">Loading schedule…</div>
+        </div>
     </div>
 
-    <!-- RIGHT: Summary -->
     <div class="right-panel">
         <table id="summary-table" class="data-table" style="font-size: 0.9em; width:100%;">
+            < 
             <thead>
-                <tr>
-                    <th style="width: 20%;">Metric</th>
-                    <th style="width: 15%;">Value</th>
-                    <th style="width: 65%;">Source</th>
-                </tr>
+                <tr><th style="width: 20%;">Metric</th><th style="width: 15%;">Value</th><th style="width: 65%;">Source</th></tr>
             </thead>
             <tbody></tbody>
         </table>
     </div>
-</div>
-
-<!-- MIDDLE ROW: Simple Forecast + Scenarios -->
-<div class="middle-row">
-    <div class="left-panel">
-        <h2 id="forecast-h2" class="clickable" style="margin:0 0 10px 0;">Simple Forecast</h2>
-        <table id="forecast-table" class="data-table" style="font-size: 0.9em;">
-            <thead>
-                <tr><th>Category</th><th>MTD</th><th>ROM</th></tr>
-            </thead>
-            <tbody></tbody>
-        </table>
-        <p id="forecast-count" style="margin:5px 0; font-size:0.8em;"></p>
-    </div>
-
-    <div class="right-panel">
-        <h2 id="scenarios-h2" class="clickable" style="margin:0 0 10px 0;">Scenarios</h2>
-        <table id="scenarios-table" class="data-table" style="font-size: 0.9em;">
-            <thead>
-                <tr><th>MTD</th><th>Scenario</th><th>ROM</th><th>Total</th><th>vs Target</th></tr>
-            </thead>
-            <tbody></tbody>
-        </table>
-    </div>
-</div>
-
-<div id="chart-container">
-    <!-- Canvas is now created only when needed by the JS -->
 </div>
 
 <!-- 7-DAY PREDICTION -->
-<h2 id="seven-day-h2" class="clickable">Next 7 Days Prediction</h2>
-<div id="seven-day-prediction-container">
-    <table class="data-table" style="font-size:0.85em; width:100%;">
+<div class="full-width">
+    <h2 id="seven-day-h2" class="clickable">Next 7 Days Prediction</h2>
+    <div id="seven-day-prediction-container">
+        <table class="data-table" style="font-size:0.85em; width:100%;">
+            <tbody></tbody>
+        </table>
+    </div>
+</div>
+
+<!-- DAILY METRICS -->
+<div class="full-width">
+    <h2 id="metrics-h2" class="clickable">Daily Metrics</h2>
+    <div id="metrics-sub-headers"></div>
+    <table id="metrics-table" class="data-table">
+        <thead>
+            <tr>
+                <th rowspan="2">Day</th>
+                <th id="sales-header" colspan="4">Sales</th>
+                <th id="orders-header" colspan="4">Orders</th>
+                <th id="aov-header" colspan="4">AOV</th>
+            </tr>
+            <tr>
+                <th>2024</th><th>2025</th><th>$</th><th>%</th>
+                <th>2024</th><th>2025</th><th>#</th><th>%</th>
+                <th>2024</th><th>2025</th><th>$</th><th>%</th>
+            </tr>
+        </thead>
         <tbody></tbody>
     </table>
 </div>
 
-<!-- Daily Metrics -->
-<h2 id="metrics-h2" class="clickable">Daily Metrics</h2>
-<div id="metrics-sub-headers"></div>
-<table id="metrics-table" class="data-table">
-    <thead>
-        <tr>
-            <th rowspan="2">Day</th>
-            <th id="sales-header" colspan="4">Sales</th>
-            <th id="orders-header" colspan="4">Orders</th>
-            <th id="aov-header" colspan="4">AOV</th>
-        </tr>
-        <tr>
-            <th>2024</th><th>2025</th><th>$</th><th>%</th>
-            <th>2024</th><th>2025</th><th>#</th><th><th>%</th>
-            <th>2024</th><th>2025</th><th>$</th><th>%</th>
-        </tr>
-    </thead>
-    <tbody></tbody>
-</table>
-<p id="metrics-count" style="margin:5px 0; font-size:0.8em;"></p>
+<!-- DAY COUNTS -->
+<div class="full-width">
+    <h2 id="daycount-h2" class="clickable">Day Counts by Month</h2>
+    <table id="daycount-table" class="data-table">
+        <thead><tr><th>Category</th><th>2024 Count</th><th>2025 Elapsed</th><th>2025 Remaining</th></tr></thead>
+        <tbody></tbody>
+    </table>
+</div>
 
-<!-- Day Counts -->
-<h2 id="daycount-h2" class="clickable">Day Counts by Month</h2>
-<table id="daycount-table" class="data-table">
-    <thead>
-        <tr><th>Category</th><th>2024 Count</th><th>2025 Elapsed</th><th>2025 Remaining</th></tr>
-    </thead>
-    <tbody></tbody>
-</table>
-<p id="daycount-count"></p>
+<!-- FORECAST + SCENARIOS (still available at the bottom) -->
+<div class="full-width">
+    <div style="display: flex; gap: 20px; flex-wrap: wrap; justify-content: center;">
+        <div style="flex: 1; min-width: 300px;">
+            <h2 id="forecast-h2" class="clickable">Simple Forecast</h2>
+            <table id="forecast-table" class="data-table" style="font-size: 0.9em;">
+                <thead><tr><th>Category</th><th>MTD</th><th>ROM</th></tr></thead>
+                <tbody></tbody>
+            </table>
+        </div>
+        <div style="flex: 1; min-width: 300px;">
+            <h2 id="scenarios-h2" class="clickable">Scenarios</h2>
+            <table id="scenarios-table" class="data-table" style="font-size: 0.9em;">
+                <thead><tr><th>MTD</th><th>Scenario</th><th>ROM</th><th>Total</th><th>vs Target</th></tr></thead>
+                <tbody></tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div id="chart-container"></div>
 
 <script src="script.js"></script>
 </body>
