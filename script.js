@@ -259,7 +259,7 @@ function calculateAverages(store, month) {
 }
 
 /* -------------------------------------------------------------
-   7-DAY PREDICTION TABLE – HORIZONTAL (NEXT 7 DAYS, ANY MONTH)
+   7-DAY PREDICTION TABLE – VERTICAL (7 ROWS)
    ------------------------------------------------------------- */
 function updateSevenDayPredictionTable(store, month) {
     const container = document.getElementById('seven-day-prediction-container');
@@ -268,7 +268,7 @@ function updateSevenDayPredictionTable(store, month) {
     const tbody = container.querySelector('tbody');
     tbody.innerHTML = '';
 
-        // Find last non-zero day (sales or orders)
+    // Find last non-zero day (sales or orders)
     let lastNonZeroDate = null;
     netsalesData.forEach(row => {
         const d = new Date(row[2]);
@@ -298,31 +298,19 @@ function updateSevenDayPredictionTable(store, month) {
     }
 
     // Header row
-    let headerHTML = '<tr><th></th>';
-    days.forEach(d => {
-        const dayName = d.toLocaleString('en-US', { weekday: 'short' });
-        const dayNum = d.getDate();
-        const monthName = d.toLocaleString('en-US', { month: 'short' });
-        headerHTML += `<th style="text-align:center;">${dayName}<br>${monthName} ${dayNum}</th>`;
-    });
-    headerHTML += '</tr>';
-    tbody.innerHTML += headerHTML;
+    tbody.innerHTML += '<tr><th>Date</th><th style="text-align:right;">Net Sales</th><th style="text-align:right;">Orders</th></tr>';
 
-    // Sales row
-    let salesRow = '<tr><td style="font-weight:bold; text-align:right;">Net Sales</td>';
+    // One row per day
     days.forEach((d, i) => {
-        salesRow += `<td id="pred-sales-${i}" style="text-align:right;">—</td>`;
+        const dateStr = d.toLocaleString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+        const salesId = `pred-sales-${i}`;
+        const ordersId = `pred-orders-${i}`;
+        tbody.innerHTML += `<tr>
+            <td style="font-weight:bold;">${dateStr}</td>
+            <td id="${salesId}" style="text-align:right;">—</td>
+            <td id="${ordersId}" style="text-align:right;">—</td>
+        </tr>`;
     });
-    salesRow += '</tr>';
-    tbody.innerHTML += salesRow;
-
-    // Orders row
-    let ordersRow = '<tr><td style="font-weight:bold; text-align:right;">Orders</td>';
-    days.forEach((d, i) => {
-        ordersRow += `<td id="pred-orders-${i}" style="text-align:right;">—</td>`;
-    });
-    ordersRow += '</tr>';
-    tbody.innerHTML += ordersRow;
 
     // Store dates for algo
     window.predictionDates = days;
@@ -332,11 +320,9 @@ function updateSevenDayPredictionTable(store, month) {
     const daysOfWeek = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
     daysOfWeek.forEach(d => dayAverages[d] = { past3: [], lastYear: 0 });
 
-    // Last 3 same weekdays (2025 or 2024)
     ordersData.forEach(row => {
         const d = new Date(row[2]);
         if (d >= startDate) return;
-
         const dayName = d.toLocaleString('en-US', { weekday: 'long' });
         const orders = parseFloat(row[storeColumns[store]]) || 0;
         if (orders > 0) {
@@ -344,10 +330,8 @@ function updateSevenDayPredictionTable(store, month) {
         }
     });
 
-    // Find closest week in 2024
     const targetWeekStart = new Date(startDate);
     targetWeekStart.setDate(targetWeekStart.getDate() - 7);
-
     const lastYearWeek = [];
     for (let i = 0; i < 7; i++) {
         const d = new Date(targetWeekStart);
@@ -356,52 +340,38 @@ function updateSevenDayPredictionTable(store, month) {
             const rd = new Date(r[2]);
             return rd.getFullYear() === 2024 && rd.getTime() === d.getTime();
         });
-        const orders = row ? parseFloat(row[storeColumns[store]]) || 0 : 0;
-        lastYearWeek.push(orders);
+        lastYearWeek.push(row ? parseFloat(row[storeColumns[store]]) || 0 : 0);
     }
-
     const lastYearWeekAvg = lastYearWeek.length > 0 ? lastYearWeek.reduce((a, b) => a + b, 0) / lastYearWeek.length : 1;
 
-    // Predict each day
     days.forEach((d, i) => {
         const dayName = d.toLocaleString('en-US', { weekday: 'long' });
         const past3 = dayAverages[dayName].past3.slice(-3);
         const avgPast3 = past3.length > 0 ? past3.reduce((a, b) => a + b, 0) / past3.length : 0;
-
         const lastYearDay = lastYearWeek[i] || avgPast3;
         const shape = lastYearWeekAvg > 0 ? lastYearDay / lastYearWeekAvg : 1;
         const predicted = Math.round(avgPast3 * shape);
-
         document.getElementById(`pred-orders-${i}`).textContent = predicted;
     });
 
-    // === PREDICT NET SALES USING DAILY AOV FROM METRICS TABLE ===
+    // === PREDICT NET SALES USING DAILY AOV ===
     const avgs = calculateAverages(store, month);
     const dayAOV = {};
-
-    // Reuse daysOfWeek from Orders section above
-    // Build daily AOV map (2025 if available, else 2024)
     daysOfWeek.forEach(dayName => {
         const o25 = avgs.ordersAverages2025[dayName].length ? Math.round(avgs.ordersAverages2025[dayName].reduce((a,b)=>a+b,0)/avgs.ordersAverages2025[dayName].length) : 0;
         const s25 = avgs.salesAverages2025[dayName].length ? Math.round(avgs.salesAverages2025[dayName].reduce((a,b)=>a+b,0)/avgs.salesAverages2025[dayName].length) : 0;
         const o24 = avgs.ordersAverages2024[dayName].length ? Math.round(avgs.ordersAverages2024[dayName].reduce((a,b)=>a+b,0)/avgs.ordersAverages2024[dayName].length) : 0;
         const s24 = avgs.salesAverages2024[dayName].length ? Math.round(avgs.salesAverages2024[dayName].reduce((a,b)=>a+b,0)/avgs.salesAverages2024[dayName].length) : 0;
-
         const aov25 = o25 > 0 ? s25 / o25 : 0;
         const aov24 = o24 > 0 ? s24 / o24 : 0;
-
         dayAOV[dayName] = o25 > 0 ? aov25 : aov24;
     });
 
-    // Predict Net Sales using daily AOV
     days.forEach((d, i) => {
         const dayName = d.toLocaleString('en-US', { weekday: 'long' });
         const aov = dayAOV[dayName] || 0;
         const predictedOrders = parseInt(document.getElementById(`pred-orders-${i}`).textContent) || 0;
         const predictedSales = Math.round(predictedOrders * aov);
-
- 
-
         document.getElementById(`pred-sales-${i}`).textContent = formatNumber(predictedSales);
     });
 }
