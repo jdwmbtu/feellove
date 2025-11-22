@@ -2122,22 +2122,22 @@ document.getElementById("store-filter").addEventListener("change", () => {
 
 function printDashboard() {
     const printWin = window.open('', '_blank', 'width=1000,height=800');
-    
+
     const storeName = document.getElementById('store-filter').options[document.getElementById('store-filter').selectedIndex].text;
     const scheduleDate = document.getElementById('schedule-date').textContent;
 
-    const htmlContent = `
+    const printHTML = `
         <!DOCTYPE html>
         <html>
         <head>
             <title>${storeName} – ${scheduleDate}</title>
             <style>
-                body { font-family: Arial, sans-serif; padding: 30px; background: white; }
-                h1 { text-align: center; color: #2c3e50; }
+                body { font-family: Arial, sans-serif; padding: 30px; background: white; line-height: 1.5; }
+                h1 { text-align: center; color: #2c3e50; margin-bottom: 30px; }
                 h2 { color: #34495e; margin-top: 30px; }
-                .row { display: flex; gap: 40px; margin-bottom: 40px; }
+                .row { display: flex; gap: 40px; margin-bottom: 40px; page-break-inside: avoid; }
                 .col { flex: 1; }
-                table { width: 100%; border-collapse: collapse; }
+                table { width: 100%; border-collapse: collapse; margin-bottom: 20px; font-size: 1em; }
                 th, td { border: 1px solid #333; padding: 10px; text-align: center; }
                 th { background: #e0e0e0; }
                 textarea { width: 100%; height: 320px; padding: 15px; font-size: 1.2em; border: 2px solid #333; border-radius: 8px; }
@@ -2174,14 +2174,12 @@ function printDashboard() {
         </html>
     `;
 
-    printWin.document.open();
-    printWin.document.write(htmlContent);
-    printWin.document.close();
-    
+    printWin.document.body.innerHTML = printHTML;   // <-- no document.write, no warning
+
     printWin.focus();
     setTimeout(() => {
         printWin.print();
-        // printWin.close();   // comment this out if you want to keep the tab open after printing
+        // printWin.close();
     }, 600);
 }
 
