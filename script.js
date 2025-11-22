@@ -2120,6 +2120,67 @@ document.getElementById("store-filter").addEventListener("change", () => {
     loadTodaySchedule(document.getElementById("store-filter").value);
 });
 
+function printDashboard() {
+    // Create a clean printable page with only the top section + notes
+    const printWindow = window.open('', '', 'width=1000,height=800');
+    printWindow.document.write(`
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>Today's Dashboard – ${document.getElementById('store-filter').options[document.getElementById('store-filter').selectedIndex].text}</title>
+            <style>
+                body { font-family: Arial, sans-serif; padding: 20px; background: white; }
+                h1 { text-align: center; color: #2c3e50; }
+                h2 { color: #34495e; }
+                .print-row { display: flex; gap: 30px; margin-bottom: 40px; }
+                .print-left, .print-right { flex: 1; }
+                table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+                th, td { border: 1px solid #ddd; padding: 10px; text-align: center; }
+                th { background: #e0e0e0; }
+                .gantt-header { display: grid; grid-template-columns: 150px repeat(13, 1fr); background: #34495e; color: white; }
+                .gantt-header > div { padding: 10px; }
+                .employee-row { display: grid; grid-template-columns: 150px 1fr; border-bottom: 1px solid #eee; }
+                .employee-name { font-weight: bold; padding: 10px; }
+                .timeline { position: relative; height: 50px; background: #f8f9fa; }
+                .shift-bar { position: absolute; top: 8px; height: 34px; background: #3498db; color: white; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-weight: bold; }
+                textarea { width: 100%; height: 300px; padding: 15px; font-size: 1.1em; border: 1px solid #ccc; border-radius: 8px; }
+                @media print {
+                    body { padding: 0; }
+                    button { display: none; }
+                }
+            </style>
+        </head>
+        <body>
+            <h1>${document.getElementById('store-filter').options[document.getElementById('store-filter').selectedIndex].text} – ${document.getElementById('schedule-date').textContent}</h1>
+            
+            <div class="print-row">
+                <div class="print-left">
+                    ${document.querySelector('#schedule-container').innerHTML}
+                </div>
+                <div class="print-right">
+                    ${document.querySelector('#summary-table').closest('.right-panel').innerHTML}
+                </div>
+            </div>
+            
+            <div class="print-row">
+                <div class="print-left">
+                    <h2>Objectives</h2>
+                    <textarea>${document.getElementById('objectives-text') ? document.getElementById('objectives-text').value : ''}</textarea>
+                </div>
+                <div class="print-right">
+                    <h2>Staff Notes</h2>
+                    <textarea>${document.getElementById('staff-notes-text') ? document.getElementById('staff-notes-text').value : ''}</textarea>
+                </div>
+            </div>
+            
+            <script>window.print(); window.close();</script>
+        </body>
+        </html>
+    `);
+}
+
+
+
 // Run after main data is loaded (hook into your existing flow)
 const originalUpdateTables = updateTables;
 updateTables = function () {
