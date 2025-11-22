@@ -2177,6 +2177,12 @@ function printDashboard() {
         </body>
         </html>
     `);
+    printWindow.document.close();
+    printWindow.focus();
+    setTimeout(() => {
+        printWindow.print();
+        printWindow.close();
+    }, 500);   // ← this tiny delay fixes the flash
 }
 
 
