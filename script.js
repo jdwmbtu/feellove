@@ -2121,7 +2121,7 @@ document.getElementById("store-filter").addEventListener("change", () => {
 });
 
 function printDashboard() {
-    const printWin = window.open('', '_blank', 'width=1000,height=800');
+    const printWin = window.open('', '_blank', 'width=1200,height=800');
 
     const storeName = document.getElementById('store-filter').options[document.getElementById('store-filter').selectedIndex].text;
     const scheduleDate = document.getElementById('schedule-date').textContent;
@@ -2132,20 +2132,20 @@ function printDashboard() {
         <head>
             <title>${storeName} – ${scheduleDate}</title>
             <style>
-                body { font-family: Arial, sans-serif; padding: 30px; background: white; line-height: 1.5; }
-                h1 { text-align: center; color: #2c3e50; margin-bottom: 30px; }
-                h2 { color: #34495e; margin-top: 30px; }
-                .row { display: flex; gap: 40px; margin-bottom: 40px; page-break-inside: avoid; }
+                @page { size: landscape; margin: 0.3in; }
+                body { font-family: Arial, sans-serif; padding: 20px; background: white; color: black !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+                h1 { text-align: center; color: #2c3e50; font-size: 28px; margin-bottom: 20px; }
+                h2 { color: #34495e; font-size: 22px; margin: 25px 0 10px; }
+                .row { display: flex; gap: 30px; margin-bottom: 30px; page-break-inside: avoid; }
                 .col { flex: 1; }
-                table { width: 100%; border-collapse: collapse; margin-bottom: 20px; font-size: 1em; }
-                th, td { border: 1px solid #333; padding: 10px; text-align: center; }
+                table { width: 100%; border-collapse: collapse; font-size: 14px; }
+                th, td { border: 1px solid #333; padding: 8px; text-align: center; }
                 th { background: #e0e0e0; }
-                textarea { width: 100%; height: 320px; padding: 15px; font-size: 1.2em; border: 2px solid #333; border-radius: 8px; }
+                textarea { width: 100%; height: 400px; padding: 15px; font-size: 16px; border: 2px solid #333; border-radius: 8px; background: white; }
                 .gantt-header { display: grid; grid-template-columns: 150px repeat(13, 1fr); background: #34495e; color: white; }
                 .employee-row { display: grid; grid-template-columns: 150px 1fr; border-bottom: 1px solid #ddd; }
                 .timeline { position: relative; height: 50px; background: #f8f9f9; }
                 .shift-bar { position: absolute; top: 8px; height: 34px; background: #3498db; color: white; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-weight: bold; }
-                @media print { body { padding: 0; } }
             </style>
         </head>
         <body>
@@ -2160,26 +2160,16 @@ function printDashboard() {
                     ${document.querySelector('#summary-table').closest('.right-panel').innerHTML}
                 </div>
             </div>
-            <div class="row">
-                <div class="col">
-                    <h2>Objectives</h2>
-                    <textarea readonly>${document.getElementById('objectives-text')?.value || ''}</textarea>
-                </div>
-                <div class="col">
-                    <h2>Staff Notes</h2>
-                    <textarea readonly>${document.getElementById('staff-notes-text')?.value || ''}</textarea>
-                </div>
-            </div>
+            <h2>Notes</h2>
+            <textarea readonly>${document.getElementById('staff-notes-text')?.value || ''}</textarea>
         </body>
         </html>
     `;
 
-    printWin.document.body.innerHTML = printHTML;   // <-- no document.write, no warning
-
+    printWin.document.body.innerHTML = printHTML;
     printWin.focus();
     setTimeout(() => {
         printWin.print();
-        // printWin.close();
     }, 600);
 }
 
