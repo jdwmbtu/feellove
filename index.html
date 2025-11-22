@@ -130,39 +130,37 @@
 </div>
 
 <!-- SCHEDULE (left) + SUMMARY (right) -->
-<div class="top-row">
-    <div class="left-panel">
-        <h2 id="schedule-h2" class="clickable">Next Day Schedule<span id="schedule-date">loading…</span></h2>
+<!-- SCHEDULE (60%) + SUMMARY (20%) + 7-DAY (20%) -->
+<div class="top-row" style="gap: 20px; margin: 30px 0;">
+    <!-- Schedule – 60% -->
+    <div style="flex: 3; min-width: 500px;">
+        <h2 id="schedule-h2" class="clickable" style="text-align:center;">Next Day Schedule – <span id="schedule-date">loading…</span></h2>
         <div id="schedule-container" style="display: block;">
             <div id="gantt-chart" class="gantt">Loading schedule…</div>
         </div>
     </div>
 
-      <div class="right-panel">
-        <div style="display: flex; gap: 20px; flex-wrap: wrap;">
-            <!-- Summary (left half) -->
-            <div style="flex: 1; min-width: 300px;">
-                <h2>Summary</h2>
-                <table id="summary-table" class="data-table" style="font-size: 0.9em; width:100%;">
-                    <thead>
-                        <tr>
-                            <th style="width: 40%;">Metric</th>
-                            <th style="width: 60%;">Value</th>
-                        </tr>
-                    </thead>
-                    <tbody></tbody>
-                </table>
-            </div>
+    <!-- Summary – 20% -->
+    <div style="flex: 1; min-width: 250px;">
+        <h2 style="text-align:center;">Summary</h2>
+        <table id="summary-table" class="data-table" style="font-size: 0.9em; width:100%;">
+            <thead>
+                <tr>
+                    <th style="width: 40%;">Metric</th>
+                    <th style="width: 60%;">Value</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
 
-            <!-- 7-Day Prediction (right half) -->
-            <div style="flex: 1; min-width: 300px;">
-                <h2 id="seven-day-h2" class="clickable">Next 7 Days Prediction</h2>
-                <div id="seven-day-prediction-container">
-                    <table class="data-table" style="font-size:0.9em;">
-                        <tbody></tbody>
-                    </table>
-                </div>
-            </div>
+    <!-- 7-Day Prediction – 20% -->
+    <div style="flex: 1; min-width: 250px;">
+        <h2 id="seven-day-h2" class="clickable" style="text-align:center;">Next 7 Days Prediction</h2>
+        <div id="seven-day-prediction-container">
+            <table class="data-table" style="font-size:0.9em;">
+                <tbody></tbody>
+            </table>
         </div>
     </div>
 </div>
