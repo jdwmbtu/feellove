@@ -2065,7 +2065,7 @@ async function loadTodaySchedule(store) {
 
         // === Header with dynamic columns ===
         let html = `<div class="gantt-header" style="grid-template-columns: 150px repeat(${visibleHours}, 1fr);">
-            <div>Staff<br><small style="font-weight:normal;color:#ccc;">${hoursText}</small></div>`;
+            <div><small style="font-weight:normal;color:#ccc;">${hoursText}</small></div>`;
         for (let i = 0; i < visibleHours; i++) {
             const hour = (visibleStart + i + 24) % 24;
             const label = hour < 10 ? ` ${hour}:00` : `${hour}:00`;
