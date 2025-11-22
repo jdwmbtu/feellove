@@ -2152,11 +2152,9 @@ function printDashboard() {
             <h1>${storeName} – ${scheduleDate}</h1>
             <div class="row">
                 <div class="col">
-                    <h2>Next Day Schedule</h2>
                     ${document.querySelector('#schedule-container').innerHTML}
                 </div>
                 <div class="col">
-                    <h2>Summary</h2>
                     ${document.querySelector('#summary-table').closest('.right-panel').innerHTML}
                 </div>
             </div>
