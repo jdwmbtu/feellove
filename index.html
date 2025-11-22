@@ -167,21 +167,17 @@
     </div>
 </div>
 
-<!-- OBJECTIVES + STAFF NOTES (side-by-side) -->
-<div class="top-row" style="margin-top: 40px;">
-    <div class="left-panel">
-        <h2>Objectives</h2>
-        <textarea id="objectives-text" style="width:100%; height:280px; padding:5px; font-size:1em; border:1px solid #ccc; border-radius:8px; resize:vertical;" placeholder="Objectives"></textarea>
-    </div>
-    <div class="right-panel">
-        <h2>Staff Notes</h2>
-        <textarea id="staff-notes-text" style="width:100%; height:280px; padding:5px; font-size:1em; border:1px solid #ccc; border-radius:8px; resize:vertical;" placeholder="Staff Notes"></textarea>
-    </div>
+<!-- SINGLE NOTES SECTION + PRINT BUTTON -->
+<div class="full-width" style="margin-top: 50px;">
+    <h2>Notes</h2>
+    <textarea id="staff-notes-text" placeholder="Enter all notes here (objectives, reminders, etc.) – about 20 lines available..." 
+              style="width:100%; height:400px; padding:15px; font-size:1.1em; border:2px solid #333; border-radius:8px; resize:vertical;"></textarea>
 </div>
 
-<!-- PRINT BUTTON – prints only the top section + notes -->
 <div style="text-align:center; margin:40px 0;">
-    <button onclick="printDashboard()" style="padding:14px 40px; font-size:1.2em; background:#27ae60; color:white; border:none; border-radius:8px; cursor:pointer;">Print Today's Dashboard</button>
+    <button onclick="printDashboard()" style="padding:14px 40px; font-size:1.2em; background:#27ae60; color:white; border:none; border-radius:8px; cursor:pointer;">
+        Print Today's Dashboard (Landscape • Color)
+    </button>
 </div>
 
 
