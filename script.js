@@ -1528,66 +1528,52 @@ function updateSummaryTable(store, month) {
 
     const nextDayTarget = getNextDayTargetedNetSales(store, month, remaining$, netsalesData, firstBlankDay);
 
-    const rows = [
+     const rows = [
         [
-            "Next Day",
-            nextDayLabel,
-            '--'
-        ],
-        [
-            "MTD Growth",
+            "Growth",
             `<span style="color: ${mtdGrowth$ >= 0 ? 'green' : 'red'};">
-                ${mtdGrowth$ >= 0 ? '⬆️' : '⬇️'} 
-                ${formatPercent(mtdGrowthPct)}, 
+                ${mtdGrowth$ >= 0 ? '⬆️' : '⬇️'}
+                ${formatPercent(mtdGrowthPct)},
                 ${formatNumber(mtdGrowth$)}
             </span>`,
-            `$${data.mtd2024.toLocaleString()}<sub><small>2024</small></sub> → $${data.mtd2025.toLocaleString()}<sub><small>2025</small></sub>`
         ],
         [
-            "Overall Target ($)",
-            `<span>
-                ${formatNumber(overallTarget)}
-            </span>`,
-            `$${ (data.mtd2024 + data.rom2024).toLocaleString() }<sub><small>2024</small></sub> + $${growthAmount.toLocaleString()}<sub><small>Growth of ${growthType === 'percent' ? `${growthTarget}%` : `$${growthTarget.toLocaleString()}K`}</small></sub>`
+            "Target",
+            `${formatNumber(overallTarget)}`,
         ],
         [
-            "Remaining to Target ($)",
-            remaining$ <= 0 
-                ? `<span style="color: green; font-weight: bold;">✓ Target Met</span>` 
+            "Remaining",
+            remaining$ <= 0
+                ? `<span style="color: green; font-weight: bold;">✓ Target Met</span>`
                 : `<span>
                        ${formatNumber(remaining$)}
                    </span>`,
-            `$${overallTarget.toLocaleString()}<sub><small>Target</small></sub> − $${data.mtd2025.toLocaleString()}<sub><small>MTD 2025</small></sub>`
         ],
         [
-            "Growth Needed for ROM (%)",
-            remaining$ <= 0 
-                ? `<span style="color: green; font-weight: bold;">✓ Target Met</span>` 
+            "ROM Target",
+            remaining$ <= 0
+                ? `<span style="color: green; font-weight: bold;">✓ Target Met</span>`
                 : `<span style="color: ${growthNeededPct >= 0 ? 'green' : 'red'};">
                        ${formatPercent(growthNeededPct)}
                    </span>`,
-            `Target ${formatNumber(remaining$)}<sub><small>ROM</small></sub> / $${data.rom2024.toLocaleString()}<sub><small>2024</small></sub>`
         ],
         [
-            "Next Day Targeted Net Sales",
+            "Target Sales",
             `<span style="color: ${nextDayTarget.value >= 0 ? 'green' : 'red'};">
                 ${formatNumber(nextDayTarget.value)}
             </span>`,
-            nextDayTarget.source
         ],
         [
             "Expected Orders",
             `<span>
                 ${Math.round(nextDayTarget.customers)}
             </span>`,
-            `Avg from last ${nextDayTarget.recentCount} ${nextDayTarget.nextWeekday}s before ${nextDayTarget.nextDateStr}`
         ],
-[
+        [
             "AOV Target",
             `<span>
                 $${(nextDayTarget.value / nextDayTarget.customers).toFixed(2)}
             </span>`,
-            `Target ${formatNumber(nextDayTarget.value)} / ${Math.round(nextDayTarget.customers)} customers`
         ]
     ];
 
