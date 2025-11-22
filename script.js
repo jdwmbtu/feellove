@@ -2121,68 +2121,68 @@ document.getElementById("store-filter").addEventListener("change", () => {
 });
 
 function printDashboard() {
-    // Create a clean printable page with only the top section + notes
-    const printWindow = window.open('', '', 'width=1000,height=800');
-    printWindow.document.write(`
+    const printWin = window.open('', '_blank', 'width=1000,height=800');
+    
+    const storeName = document.getElementById('store-filter').options[document.getElementById('store-filter').selectedIndex].text;
+    const scheduleDate = document.getElementById('schedule-date').textContent;
+
+    const htmlContent = `
         <!DOCTYPE html>
         <html>
         <head>
-            <title>Today's Dashboard – ${document.getElementById('store-filter').options[document.getElementById('store-filter').selectedIndex].text}</title>
+            <title>${storeName} – ${scheduleDate}</title>
             <style>
-                body { font-family: Arial, sans-serif; padding: 20px; background: white; }
+                body { font-family: Arial, sans-serif; padding: 30px; background: white; }
                 h1 { text-align: center; color: #2c3e50; }
-                h2 { color: #34495e; }
-                .print-row { display: flex; gap: 30px; margin-bottom: 40px; }
-                .print-left, .print-right { flex: 1; }
-                table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
-                th, td { border: 1px solid #ddd; padding: 10px; text-align: center; }
+                h2 { color: #34495e; margin-top: 30px; }
+                .row { display: flex; gap: 40px; margin-bottom: 40px; }
+                .col { flex: 1; }
+                table { width: 100%; border-collapse: collapse; }
+                th, td { border: 1px solid #333; padding: 10px; text-align: center; }
                 th { background: #e0e0e0; }
+                textarea { width: 100%; height: 320px; padding: 15px; font-size: 1.2em; border: 2px solid #333; border-radius: 8px; }
                 .gantt-header { display: grid; grid-template-columns: 150px repeat(13, 1fr); background: #34495e; color: white; }
-                .gantt-header > div { padding: 10px; }
-                .employee-row { display: grid; grid-template-columns: 150px 1fr; border-bottom: 1px solid #eee; }
-                .employee-name { font-weight: bold; padding: 10px; }
-                .timeline { position: relative; height: 50px; background: #f8f9fa; }
+                .employee-row { display: grid; grid-template-columns: 150px 1fr; border-bottom: 1px solid #ddd; }
+                .timeline { position: relative; height: 50px; background: #f8f9f9; }
                 .shift-bar { position: absolute; top: 8px; height: 34px; background: #3498db; color: white; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-weight: bold; }
-                textarea { width: 100%; height: 300px; padding: 15px; font-size: 1.1em; border: 1px solid #ccc; border-radius: 8px; }
-                @media print {
-                    body { padding: 0; }
-                    button { display: none; }
-                }
+                @media print { body { padding: 0; } }
             </style>
         </head>
         <body>
-            <h1>${document.getElementById('store-filter').options[document.getElementById('store-filter').selectedIndex].text} – ${document.getElementById('schedule-date').textContent}</h1>
-            
-            <div class="print-row">
-                <div class="print-left">
+            <h1>${storeName} – ${scheduleDate}</h1>
+            <div class="row">
+                <div class="col">
+                    <h2>Next Day Schedule</h2>
                     ${document.querySelector('#schedule-container').innerHTML}
                 </div>
-                <div class="print-right">
+                <div class="col">
+                    <h2>Summary</h2>
                     ${document.querySelector('#summary-table').closest('.right-panel').innerHTML}
                 </div>
             </div>
-            
-            <div class="print-row">
-                <div class="print-left">
+            <div class="row">
+                <div class="col">
                     <h2>Objectives</h2>
-                    <textarea>${document.getElementById('objectives-text') ? document.getElementById('objectives-text').value : ''}</textarea>
+                    <textarea readonly>${document.getElementById('objectives-text')?.value || ''}</textarea>
                 </div>
-                <div class="print-right">
+                <div class="col">
                     <h2>Staff Notes</h2>
-                    <textarea>${document.getElementById('staff-notes-text') ? document.getElementById('staff-notes-text').value : ''}</textarea>
+                    <textarea readonly>${document.getElementById('staff-notes-text')?.value || ''}</textarea>
                 </div>
             </div>
-            
-            <script>window.print(); window.close();</script>
         </body>
         </html>
-    `);
-    printWindow.document.close();
-    printWindow.focus();
+    `;
+
+    printWin.document.open();
+    printWin.document.write(htmlContent);
+    printWin.document.close();
+    
+    printWin.focus();
     setTimeout(() => {
-        printWindow.print();
-        printWindow.close();
-    }, 500);   // ← this tiny delay fixes the flash
+        printWin.print();
+        // printWin.close();   // comment this out if you want to keep the tab open after printing
+    }, 600);
 }
 
 
