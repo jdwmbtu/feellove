@@ -2141,7 +2141,7 @@ function printDashboard() {
                     ${document.querySelector('#schedule-container').innerHTML}
                 </div>
                 <div class="col">
-                    ${document.querySelector('#summary-table').closest('.right-panel').innerHTML}
+                    ${document.querySelector('#summary-table').outerHTML}
                 </div>
             </div>
             <h2>Notes</h2>
