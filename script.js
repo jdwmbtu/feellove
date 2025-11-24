@@ -2019,7 +2019,7 @@ async function loadTodaySchedule(store) {
     if (storeKey === "CAFE") {
         openHour = 7; closeHour = 15; hoursText = "Open 7am – 3pm";
     } else if (storeKey === "FEELLOVE") {
-        const isWeekend = today.getDay() === 0 || today.getDay() === 6;   // ← now works!
+        const isWeekend = today.getDay() === 0 || today.getDay() === 1;   // ← now works!
         if (isWeekend) { openHour = 7; closeHour = 16; hoursText = "Open 7am – 4pm (Weekend)"; }
         else { openHour = 6; closeHour = 19; hoursText = "Open 6am – 7pm (Weekday)"; }
     } else { // SNOW & ZION
