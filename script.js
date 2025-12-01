@@ -369,12 +369,17 @@ function updateSevenDayPredictionTable(store, month) {
         dayAOV[dayName] = o25 > 0 ? aov25 : aov24;
     });
 
-    days.forEach((d, i) => {
+days.forEach((d, i) => {
         const dayName = d.toLocaleString('en-US', { weekday: 'long' });
         const aov = dayAOV[dayName] || 0;
         const predictedOrders = parseInt(document.getElementById(`pred-orders-${i}`).textContent) || 0;
         const predictedSales = Math.round(predictedOrders * aov);
         document.getElementById(`pred-sales-${i}`).textContent = formatNumber(predictedSales);
+
+        // Save the first day's (i === 0) predicted sales for Summary table
+        if (i === 0) {
+            nextDayPredictedSales = predictedSales;
+        }
     });
 }
 
