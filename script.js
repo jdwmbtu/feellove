@@ -2201,14 +2201,12 @@ function printDashboard() {
 
 
 const originalUpdateTables = updateTables;
-updateTables = function () {
+updateTables = async function () {
     const store = document.getElementById("store-filter").value || 'CAFE';
     
-    // Run schedule first and wait for it to finish
-    loadTodaySchedule(store);
+    // Run schedule and wait for it to finish
+    await loadTodaySchedule(store);
     
-    // Tiny delay to ensure totalStaffingHours is set before Summary runs
-    setTimeout(() => {
-        originalUpdateTables.apply(this, arguments);
-    }, 100);
+    // Now run everything else — totalStaffingHours is guaranteed to be set
+    originalUpdateTables.apply(this, arguments);
 };
