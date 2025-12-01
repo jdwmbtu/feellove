@@ -1528,7 +1528,7 @@ function updateSummaryTable(store, month) {
 
     const nextDayTarget = getNextDayTargetedNetSales(store, month, remaining$, netsalesData, firstBlankDay);
 
-     const rows = [
+        const rows = [
         [
             "Growth",
             `<span style="color: ${mtdGrowth$ >= 0 ? 'green' : 'red'};">
@@ -1574,6 +1574,21 @@ function updateSummaryTable(store, month) {
             `<span>
                 $${(nextDayTarget.value / nextDayTarget.customers).toFixed(2)}
             </span>`,
+        ],
+        // === NEW ROWS ===
+        [
+            "Staff Hours",
+            totalStaffingHours > 0 ? totalStaffingHours.toFixed(1) + "h" : "—"
+        ],
+        [
+            "Forecast Sales",
+            formatNumber(nextDayTarget.value)
+        ],
+        [
+            "Per Staff Hour",
+            totalStaffingHours > 0 
+                ? "$" + Math.round(nextDayTarget.value / totalStaffingHours)
+                : "—"
         ]
     ];
 
