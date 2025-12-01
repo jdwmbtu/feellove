@@ -2200,9 +2200,15 @@ function printDashboard() {
 
 
 
-// Run after main data is loaded (hook into your existing flow)
 const originalUpdateTables = updateTables;
 updateTables = function () {
-    loadTodaySchedule(document.getElementById("store-filter").value);
-    originalUpdateTables.apply(this, arguments);
+    const store = document.getElementById("store-filter").value || 'CAFE';
+    
+    // Run schedule first and wait for it to finish
+    loadTodaySchedule(store);
+    
+    // Tiny delay to ensure totalStaffingHours is set before Summary runs
+    setTimeout(() => {
+        originalUpdateTables.apply(this, arguments);
+    }, 100);
 };
