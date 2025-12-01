@@ -2086,6 +2086,24 @@ if (isWeekend) { openHour = 7; closeHour = 16; hoursText = "Open 7am – 4pm (We
             });
         }
 
+        // === Calculate total staffing hours ===
+        let totalHours = 0;
+        shifts.forEach(shift => {
+            const [startH, startM] = shift.start.split(":").map(Number);
+            const [endH, endM] = shift.end.split(":").map(Number);
+            let hours = endH - startH + (endM - startM) / 60;
+            if (hours < 0) hours += 24; // handle overnight shifts
+            totalHours += hours;
+        });
+        const totalHoursDisplay = totalHours.toFixed(1);
+
+        // Add total hours below the schedule
+        html += `<div style="margin-top:15px; padding:10px; background:#f0f8ff; border-radius:8px; font-weight:bold; font-size:1.1em;">
+            Total Staffing Hours: ${totalHoursDisplay}h
+        </div>`;
+
+
+
         document.getElementById("gantt-chart").innerHTML = html;
         document.getElementById("schedule-container").style.display = "block";
     } catch (err) {
