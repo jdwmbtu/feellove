@@ -2204,6 +2204,5 @@ function printDashboard() {
 const originalUpdateTables = updateTables;
 updateTables = function () {
     loadTodaySchedule(document.getElementById("store-filter").value);
-        originalUpdateTables.apply(this, arguments);
-
+    originalUpdateTables.apply(this, arguments);
 };
