@@ -2203,6 +2203,7 @@ function printDashboard() {
 // Run after main data is loaded (hook into your existing flow)
 const originalUpdateTables = updateTables;
 updateTables = function () {
-    originalUpdateTables.apply(this, arguments);
     loadTodaySchedule(document.getElementById("store-filter").value);
+        originalUpdateTables.apply(this, arguments);
+
 };
