@@ -11,6 +11,7 @@ let growthType = 'number';
 let isAdjusted = true;
 let lastModifiedTime = null;
 let currentMetricsSubView = 'sales';  // Default sub-view
+let totalStaffingHours = 0;   // will be set by loadTodaySchedule
 
 
 /* -------------------------------------------------------------
