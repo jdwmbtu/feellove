@@ -1587,14 +1587,14 @@ function updateSummaryTable(store, month) {
             "Staff Hours",
             totalStaffingHours > 0 ? totalStaffingHours.toFixed(1) + "h" : "—"
         ],
-        [
+               [
             "Forecast Sales",
-            formatNumber(nextDayTarget.value)
+            formatNumber(nextDayPredictedSales)
         ],
         [
             "Per Staff Hour",
             totalStaffingHours > 0 
-                ? "$" + Math.round(nextDayTarget.value / totalStaffingHours)
+                ? "$" + Math.round(nextDayPredictedSales / totalStaffingHours)
                 : "—"
         ]
     ];
