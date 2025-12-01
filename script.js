@@ -2112,6 +2112,7 @@ if (isWeekend) { openHour = 7; closeHour = 16; hoursText = "Open 7am – 4pm (We
             totalHours += hours;
         });
         const totalHoursDisplay = totalHours.toFixed(1);
+        totalStaffingHours = parseFloat(totalHoursDisplay);   // make it global
 
         // Add total hours below the schedule
         html += `<div style="margin-top:15px; padding:10px; background:#f0f8ff; border-radius:8px; font-weight:bold; font-size:1.1em;">
