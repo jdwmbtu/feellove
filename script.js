@@ -660,9 +660,9 @@ function updateScenariosTable(store, month) {
     const mtdGrowthPct = data.mtdLAST_YEAR > 0 ? ((data.mtdCURRENT_YEAR / data.mtdLAST_YEAR) - 1) * 100 : 0;
 
     const scenarios = [
-        { label: `${month} ${new Date().getFullYear() - 1} Repeats`, rom: data.romLAST_YEAR },
+{ label: `${month} ${LAST_YEAR} Repeats`, rom: data.romLastYear },
         { label: `${month} ${new Date().getFullYear()} at ${growthTarget}${growthType === 'dollar' ? 'K' : '%'} Growth Rate`, rom: data.romTarget },
-        { label: `${month} ${new Date().getFullYear()} at Current Rate ${formatPercent(mtdGrowthPct)}`, rom: data.romCURRENT_YEAR }
+{ label: `${month} ${CURRENT_YEAR} at ${growthTarget}${growthType === 'dollar' ? 'K' : '%'} Growth Rate`, rom: data.romTarget }
     ];
 
     // MTD merged row
