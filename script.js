@@ -8,6 +8,8 @@ let netsalesData = null;
 let ordersData = null;
 let growthTarget = 20;
 let growthType = 'number';
+const CURRENT_YEAR = CURRENT_DATE.getFullYear();        // 2026
+const LAST_YEAR = CURRENT_YEAR - 1;                      // CURRENT_YEAR
 let isAdjusted = true;
 let lastModifiedTime = null;
 let currentMetricsSubView = 'sales';  // Default sub-view
@@ -253,11 +255,17 @@ function calculateAverages(store, month) {
 
         if (!month || m === month) {
             const day = sRow[0];
-            if (y === 2024) { s24[day].push(sales); o24[day].push(orders); }
-            else if (y === 2025) { s25[day].push(sales); o25[day].push(orders); }
+                    const y = dt.getFullYear();
+        if (y === LAST_YEAR) { s24[day].push(sales); o24[day].push(orders); }
+        else if (y === CURRENT_YEAR) { s25[day].push(sales); o25[day].push(orders); }
         }
     }
-    return { salesAverages2024: s24, salesAverages2025: s25, ordersAverages2024: o24, ordersAverages2025: o25 };
+    return { 
+        salesAveragesLastYear: s24, 
+        salesAveragesCurrentYear: s25, 
+        ordersAveragesLastYear: o24, 
+        ordersAveragesCurrentYear: o25 
+    };
 }
 
 /* -------------------------------------------------------------
@@ -340,7 +348,7 @@ function updateSevenDayPredictionTable(store, month) {
         d.setDate(d.getDate() + i);
         const row = ordersData.find(r => {
             const rd = new Date(r[2]);
-            return rd.getFullYear() === 2024 && rd.getTime() === d.getTime();
+            return rd.getFullYear() === LAST_YEAR && rd.getTime() === d.getTime();
         });
         lastYearWeek.push(row ? parseFloat(row[storeColumns[store]]) || 0 : 0);
     }
@@ -360,10 +368,10 @@ function updateSevenDayPredictionTable(store, month) {
     const avgs = calculateAverages(store, month);
     const dayAOV = {};
     daysOfWeek.forEach(dayName => {
-        const o25 = avgs.ordersAverages2025[dayName].length ? Math.round(avgs.ordersAverages2025[dayName].reduce((a,b)=>a+b,0)/avgs.ordersAverages2025[dayName].length) : 0;
-        const s25 = avgs.salesAverages2025[dayName].length ? Math.round(avgs.salesAverages2025[dayName].reduce((a,b)=>a+b,0)/avgs.salesAverages2025[dayName].length) : 0;
-        const o24 = avgs.ordersAverages2024[dayName].length ? Math.round(avgs.ordersAverages2024[dayName].reduce((a,b)=>a+b,0)/avgs.ordersAverages2024[dayName].length) : 0;
-        const s24 = avgs.salesAverages2024[dayName].length ? Math.round(avgs.salesAverages2024[dayName].reduce((a,b)=>a+b,0)/avgs.salesAverages2024[dayName].length) : 0;
+        const o25 = avgs.ordersAveragesCurrentYear[dayName].length ? Math.round(avgs.ordersAveragesCurrentYear[dayName].reduce((a,b)=>a+b,0)/avgs.ordersAveragesCurrentYear[dayName].length) : 0;
+        const s25 = avgs.salesAveragesCurrentYear[dayName].length ? Math.round(avgs.salesAveragesCurrentYear[dayName].reduce((a,b)=>a+b,0)/avgs.salesAveragesCurrentYear[dayName].length) : 0;
+        const o24 = avgs.ordersAveragesLastYear[dayName].length ? Math.round(avgs.ordersAveragesLastYear[dayName].reduce((a,b)=>a+b,0)/avgs.ordersAveragesLastYear[dayName].length) : 0;
+        const s24 = avgs.salesAveragesLastYear[dayName].length ? Math.round(avgs.salesAveragesLastYear[dayName].reduce((a,b)=>a+b,0)/avgs.salesAveragesLastYear[dayName].length) : 0;
         const aov25 = o25 > 0 ? s25 / o25 : 0;
         const aov24 = o24 > 0 ? s24 / o24 : 0;
         dayAOV[dayName] = o25 > 0 ? aov25 : aov24;
@@ -396,10 +404,10 @@ function updateCombinedMetricsTable(store, month) {
     const days = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
 
     days.forEach(d => {
-        const s24 = avgs.salesAverages2024[d].length ? Math.round(avgs.salesAverages2024[d].reduce((a,b)=>a+b,0)/avgs.salesAverages2024[d].length) : 0;
-        const s25 = avgs.salesAverages2025[d].length ? Math.round(avgs.salesAverages2025[d].reduce((a,b)=>a+b,0)/avgs.salesAverages2025[d].length) : 0;
-        const o24 = avgs.ordersAverages2024[d].length ? Math.round(avgs.ordersAverages2024[d].reduce((a,b)=>a+b,0)/avgs.ordersAverages2024[d].length) : 0;
-        const o25 = avgs.ordersAverages2025[d].length ? Math.round(avgs.ordersAverages2025[d].reduce((a,b)=>a+b,0)/avgs.ordersAverages2025[d].length) : 0;
+        const s24 = avgs.salesAveragesLastYear[d].length ? Math.round(avgs.salesAveragesLastYear[d].reduce((a,b)=>a+b,0)/avgs.salesAveragesLastYear[d].length) : 0;
+        const s25 = avgs.salesAveragesCurrentYear[d].length ? Math.round(avgs.salesAveragesCurrentYear[d].reduce((a,b)=>a+b,0)/avgs.salesAveragesCurrentYear[d].length) : 0;
+        const o24 = avgs.ordersAveragesLastYear[d].length ? Math.round(avgs.ordersAveragesLastYear[d].reduce((a,b)=>a+b,0)/avgs.ordersAveragesLastYear[d].length) : 0;
+        const o25 = avgs.ordersAveragesCurrentYear[d].length ? Math.round(avgs.ordersAveragesCurrentYear[d].reduce((a,b)=>a+b,0)/avgs.ordersAveragesCurrentYear[d].length) : 0;
         const aov24 = o24 > 0 ? s24 / o24 : 0;
         const aov25 = o25 > 0 ? s25 / o25 : 0;
 
@@ -432,10 +440,10 @@ function updateCombinedMetricsTable(store, month) {
     let totalSales24 = 0, totalOrders24 = 0, totalSales25 = 0, totalOrders25 = 0;
 
     days.forEach(d => {
-        const s24 = avgs.salesAverages2024[d].length ? Math.round(avgs.salesAverages2024[d].reduce((a,b)=>a+b,0)/avgs.salesAverages2024[d].length) : 0;
-        const o24 = avgs.ordersAverages2024[d].length ? Math.round(avgs.ordersAverages2024[d].reduce((a,b)=>a+b,0)/avgs.ordersAverages2024[d].length) : 0;
-        const s25 = avgs.salesAverages2025[d].length ? Math.round(avgs.salesAverages2025[d].reduce((a,b)=>a+b,0)/avgs.salesAverages2025[d].length) : 0;
-        const o25 = avgs.ordersAverages2025[d].length ? Math.round(avgs.ordersAverages2025[d].reduce((a,b)=>a+b,0)/avgs.ordersAverages2025[d].length) : 0;
+        const s24 = avgs.salesAveragesLastYear[d].length ? Math.round(avgs.salesAveragesLastYear[d].reduce((a,b)=>a+b,0)/avgs.salesAveragesLastYear[d].length) : 0;
+        const o24 = avgs.ordersAveragesLastYear[d].length ? Math.round(avgs.ordersAveragesLastYear[d].reduce((a,b)=>a+b,0)/avgs.ordersAveragesLastYear[d].length) : 0;
+        const s25 = avgs.salesAveragesCurrentYear[d].length ? Math.round(avgs.salesAveragesCurrentYear[d].reduce((a,b)=>a+b,0)/avgs.salesAveragesCurrentYear[d].length) : 0;
+        const o25 = avgs.ordersAveragesCurrentYear[d].length ? Math.round(avgs.ordersAveragesCurrentYear[d].reduce((a,b)=>a+b,0)/avgs.ordersAveragesCurrentYear[d].length) : 0;
 
         totalSales24 += s24;
         totalOrders24 += o24;
@@ -446,9 +454,9 @@ function updateCombinedMetricsTable(store, month) {
     const avgAOV24 = totalOrders24 > 0 ? totalSales24 / totalOrders24 : 0;
     const avgAOV25 = totalOrders25 > 0 ? totalSales25 / totalOrders25 : 0;
 
-    // NEW: Check if all 7 days have data (at least one entry in 2024 or 2025 averages for this month)
+    // NEW: Check if all 7 days have data (at least one entry in LAST_YEAR or CURRENT_YEAR averages for this month)
     const hasFullWeekData = days.every(d => 
-         avgs.salesAverages2025[d].length > 0
+         avgs.salesAveragesCurrentYear[d].length > 0
     );
 
     if (hasFullWeekData) {
@@ -477,13 +485,13 @@ function updateCombinedMetricsTable(store, month) {
      // === MONTHLY TOTALS ROW ===
     const data = calculateSalesData(store, month);
     const shift = isAdjusted ? 1 : 0;
-    const monthlySales24 = data.mtd2024;
-    const monthlySales25 = data.mtd2025;
+    const monthlySales24 = data.mtdLAST_YEAR;
+    const monthlySales25 = data.mtdCURRENT_YEAR;
 
     // SAME EXACT LOGIC AS NET SALES MTD — BUT FOR ORDERS
     const monthlyOrders24 = ordersData.reduce((s, r) => {
         const d = new Date(r[2]);
-        if (d.getFullYear() !== 2024 || d.toLocaleString('en-US',{month:'long'}) !== month) return s;
+        if (d.getFullYear() !== LAST_YEAR || d.toLocaleString('en-US',{month:'long'}) !== month) return s;
         const day = d.getDate();
         if (day < (1 + shift) || day > (data.elapsedDays + shift)) return s;
         const v = r[storeColumns[store]];
@@ -492,7 +500,7 @@ function updateCombinedMetricsTable(store, month) {
 
     const monthlyOrders25 = ordersData.reduce((s, r) => {
         const d = new Date(r[2]);
-        if (d.getFullYear() !== 2025 || d > data.last2025 || d.toLocaleString('en-US',{month:'long'}) !== month) return s;
+        if (d.getFullYear() !== CURRENT_YEAR || d > data.lastCURRENT_YEAR || d.toLocaleString('en-US',{month:'long'}) !== month) return s;
         const v = r[storeColumns[store]];
         return s + (v && v.toString().trim() !== '' ? parseFloat(v.toString().replace(/[^0-9.-]+/g, '') || 0) : 0);
     }, 0);
@@ -537,7 +545,7 @@ function updateDayCountTable(store, month) {
 
     let lastRecordedDate = null;
 
-    // Count 2024 and 2025 data
+    // Count LAST_YEAR and CURRENT_YEAR data
     netsalesData.forEach(row => {
         const date = new Date(row[2]);
         if (isNaN(date)) return;
@@ -551,10 +559,10 @@ function updateDayCountTable(store, month) {
         const year = date.getFullYear();
         const dayIndex = date.getDay();
 
-        if (year === 2024) {
+        if (year === LAST_YEAR) {
             if (dayIndex >= 1 && dayIndex <= 5) lastYear.Weekdays++;
             else lastYear.Weekends++;
-        } else if (year === 2025) {
+        } else if (year === CURRENT_YEAR) {
             if (dayIndex >= 1 && dayIndex <= 5) currentElapsed.Weekdays++;
             else currentElapsed.Weekends++;
 
@@ -562,23 +570,23 @@ function updateDayCountTable(store, month) {
         }
     });
 
-    // For future months: no 2025 data → elapsed = 0, remaining = full month
+    // For future months: no CURRENT_YEAR data → elapsed = 0, remaining = full month
     if (month && !lastRecordedDate) {
         const monthIndex = ['January','February','March','April','May','June','July','August','September','October','November','December'].indexOf(month);
-        const lastDayOfMonth = new Date(2025, monthIndex + 1, 0).getDate();
+        const lastDayOfMonth = new Date(CURRENT_YEAR, monthIndex + 1, 0).getDate();
 
         for (let d = 1; d <= lastDayOfMonth; d++) {
-            const date = new Date(2025, monthIndex, d);
+            const date = new Date(CURRENT_YEAR, monthIndex, d);
             const dayIndex = date.getDay();
             if (dayIndex >= 1 && dayIndex <= 5) currentRemaining.Weekdays++;
             else currentRemaining.Weekends++;
         }
     } else if (month && lastRecordedDate) {
         const monthIndex = ['January','February','March','April','May','June','July','August','September','October','November','December'].indexOf(month);
-        const lastDayOfMonth = new Date(2025, monthIndex + 1, 0).getDate();
+        const lastDayOfMonth = new Date(CURRENT_YEAR, monthIndex + 1, 0).getDate();
 
         for (let d = lastRecordedDate.getDate() + 1; d <= lastDayOfMonth; d++) {
-            const date = new Date(2025, monthIndex, d);
+            const date = new Date(CURRENT_YEAR, monthIndex, d);
             const dayIndex = date.getDay();
             if (dayIndex >= 1 && dayIndex <= 5) currentRemaining.Weekdays++;
             else currentRemaining.Weekends++;
@@ -621,9 +629,10 @@ function updateForecastTable(store, month) {
     const data = calculateSalesData(store, month);
 
     const rows = [
-        { label: `${month} 2024`, mtd: data.mtd2024, rom: data.rom2024 },
+{ label: `${month} ${LAST_YEAR}`, mtd: data.mtdLastYear, rom: data.romLastYear },
         { label: `${month} Growth Target ${growthTarget}${growthType === 'dollar' ? 'K' : '%'} `, mtd: data.mtdTarget, rom: data.romTarget },
-        { label: `${month} 2025`, mtd: data.mtd2025, rom: data.rom2025 }
+        { label: `${month} ${CURRENT_YEAR}`, mtd: data.mtdCurrentYear, rom: data.romCurrentYear }
+
     ];
 
     rows.forEach(r => {
@@ -645,29 +654,29 @@ function updateScenariosTable(store, month) {
     tbody.innerHTML = '';
 
     const data = calculateSalesData(store, month);
-    const mtd2025 = data.mtd2025;
+    const mtdCURRENT_YEAR = data.mtdCURRENT_YEAR;
     const overallTarget = data.mtdTarget + data.romTarget;
 
-    const mtdGrowthPct = data.mtd2024 > 0 ? ((data.mtd2025 / data.mtd2024) - 1) * 100 : 0;
+    const mtdGrowthPct = data.mtdLAST_YEAR > 0 ? ((data.mtdCURRENT_YEAR / data.mtdLAST_YEAR) - 1) * 100 : 0;
 
     const scenarios = [
-        { label: `${month} ${new Date().getFullYear() - 1} Repeats`, rom: data.rom2024 },
+        { label: `${month} ${new Date().getFullYear() - 1} Repeats`, rom: data.romLAST_YEAR },
         { label: `${month} ${new Date().getFullYear()} at ${growthTarget}${growthType === 'dollar' ? 'K' : '%'} Growth Rate`, rom: data.romTarget },
-        { label: `${month} ${new Date().getFullYear()} at Current Rate ${formatPercent(mtdGrowthPct)}`, rom: data.rom2025 }
+        { label: `${month} ${new Date().getFullYear()} at Current Rate ${formatPercent(mtdGrowthPct)}`, rom: data.romCURRENT_YEAR }
     ];
 
     // MTD merged row
     const mtdRow = document.createElement('tr');
     mtdRow.innerHTML = `
         <td rowspan="${scenarios.length+1}" style="vertical-align: middle; text-align: center; font-weight: bold;">
-            ${formatNumber(mtd2025)}
+            ${formatNumber(mtdCURRENT_YEAR)}
         </td>
     `;
     tbody.appendChild(mtdRow);
 
     // Scenario rows
     scenarios.forEach(scenario => {
-        const total = mtd2025 + scenario.rom;
+        const total = mtdCURRENT_YEAR + scenario.rom;
         const diff = total - overallTarget;
         const color = diff >= 0 ? 'green' : 'red';
 
@@ -688,39 +697,39 @@ function updateScenariosTable(store, month) {
 function calculateSalesData(store, month) {
     const idx = storeColumns[store];
     const monthIndex = ['January','February','March','April','May','June','July','August','September','October','November','December'].indexOf(month);
-    const totalDays = new Date(2025, monthIndex + 1, 0).getDate();
+    const totalDays = new Date(CURRENT_YEAR, monthIndex + 1, 0).getDate();
     const shift = isAdjusted ? 1 : 0;
 
     const now = new Date();
-    const lastDay2025 = new Date(2025, monthIndex + 1, 0);
-    const monthEnded = now > lastDay2025;
+    const lastDayCURRENT_YEAR = new Date(CURRENT_YEAR, monthIndex + 1, 0);
+    const monthEnded = now > lastDayCURRENT_YEAR;
 
-    let last2025 = null;
-    let mtd2025 = 0;
+    let lastCURRENT_YEAR = null;
+    let mtdCURRENT_YEAR = 0;
     let isMonthStarted = false;
 
     netsalesData.forEach(row => {
         const d = new Date(row[2]);
-        if (isNaN(d) || d.getFullYear() !== 2025 || d.toLocaleString('en-US',{month:'long'}) !== month) return;
+        if (isNaN(d) || d.getFullYear() !== CURRENT_YEAR || d.toLocaleString('en-US',{month:'long'}) !== month) return;
         const v = row[idx];
         if (!v || v.toString().trim() === '') return;
 
         isMonthStarted = true;
-        mtd2025 += parseFloat(v.toString().replace(/[^0-9.-]+/g, '') || 0);
-        if (!last2025 || d > last2025) last2025 = d;
+        mtdCURRENT_YEAR += parseFloat(v.toString().replace(/[^0-9.-]+/g, '') || 0);
+        if (!lastCURRENT_YEAR || d > lastCURRENT_YEAR) lastCURRENT_YEAR = d;
     });
 
-    // Allow future months in 2025 to show target
-    if (!isMonthStarted && monthIndex >= CURRENT_DATE.getMonth() && CURRENT_DATE.getFullYear() === 2025) {
+    // Allow future months in CURRENT_YEAR to show target
+    if (!isMonthStarted && monthIndex >= CURRENT_DATE.getMonth() && CURRENT_DATE.getFullYear() === CURRENT_YEAR) {
         isMonthStarted = true;
-        mtd2025 = 0;
-        last2025 = null; // no data → first day of month
+        mtdCURRENT_YEAR = 0;
+        lastCURRENT_YEAR = null; // no data → first day of month
     }
 
     if (!isMonthStarted) {
-        const full2024 = netsalesData.reduce((s, r) => {
+        const fullLAST_YEAR = netsalesData.reduce((s, r) => {
             const d = new Date(r[2]);
-            if (d.getFullYear() !== 2024 || d.toLocaleString('en-US',{month:'long'}) !== month) return s;
+            if (d.getFullYear() !== LAST_YEAR || d.toLocaleString('en-US',{month:'long'}) !== month) return s;
             const day = d.getDate();
             if (day < (1 + shift) || day > (totalDays + shift)) return s;
 
@@ -737,17 +746,17 @@ function calculateSalesData(store, month) {
         }, 0);
 
         const growthAmount = growthTarget * 1000;
-let romTarget = growthType === 'percent' ? rom2024 * (1 + growthTarget / 100) : rom2024 + growthAmount;
+let romTarget = growthType === 'percent' ? romLAST_YEAR * (1 + growthTarget / 100) : romLAST_YEAR + growthAmount;
         return {
-            mtd2024: 0, mtd2025: 0, mtdTarget: 0,
-            rom2024: Math.round(full2024), rom2025: 0, romTarget: Math.round(romTarget)
+            mtdLAST_YEAR: 0, mtdCURRENT_YEAR: 0, mtdTarget: 0,
+            romLAST_YEAR: Math.round(fullLAST_YEAR), romCURRENT_YEAR: 0, romTarget: Math.round(romTarget)
         };
     }
 
-    if (monthEnded && last2025 && last2025 >= lastDay2025) {
-        const mtd2024 = netsalesData.reduce((s, r) => {
+    if (monthEnded && lastCURRENT_YEAR && lastCURRENT_YEAR >= lastDayCURRENT_YEAR) {
+        const mtdLAST_YEAR = netsalesData.reduce((s, r) => {
             const d = new Date(r[2]);
-            if (d.getFullYear() !== 2024 || d.toLocaleString('en-US',{month:'long'}) !== month) return s;
+            if (d.getFullYear() !== LAST_YEAR || d.toLocaleString('en-US',{month:'long'}) !== month) return s;
             const day = d.getDate();
             if (day < (1 + shift) || day > (totalDays + shift)) return s;
 
@@ -765,41 +774,41 @@ let romTarget = growthType === 'percent' ? rom2024 * (1 + growthTarget / 100) : 
 
         let mtdTarget;
         if (growthType === 'percent') {
-            mtdTarget = mtd2024 * (1 + growthTarget / 100);
+            mtdTarget = mtdLAST_YEAR * (1 + growthTarget / 100);
         } else {
             const growthAmount = growthTarget * 1000;
-            mtdTarget = mtd2024 + growthAmount;
+            mtdTarget = mtdLAST_YEAR + growthAmount;
         }
 
         return {
-            mtd2024: Math.round(mtd2024),
-            mtd2025: Math.round(mtd2025),
+            mtdLAST_YEAR: Math.round(mtdLAST_YEAR),
+            mtdCURRENT_YEAR: Math.round(mtdCURRENT_YEAR),
             mtdTarget: Math.round(mtdTarget),
-            rom2024: 0, rom2025: 0, romTarget: 0
+            romLAST_YEAR: 0, romCURRENT_YEAR: 0, romTarget: 0
         };
     }
 
-    const elapsedDays = last2025 ? last2025.getDate() : 0;
+    const elapsedDays = lastCURRENT_YEAR ? lastCURRENT_YEAR.getDate() : 0;
 
-    mtd2025 = netsalesData.reduce((s, r) => {
+    mtdCURRENT_YEAR = netsalesData.reduce((s, r) => {
         const d = new Date(r[2]);
-        if (d.getFullYear() !== 2025 || d > last2025 || d.toLocaleString('en-US',{month:'long'}) !== month) return s;
+        if (d.getFullYear() !== CURRENT_YEAR || d > lastCURRENT_YEAR || d.toLocaleString('en-US',{month:'long'}) !== month) return s;
         const v = r[idx];
         return s + (v && v.toString().trim() !== '' ? parseFloat(v.toString().replace(/[^0-9.-]+/g, '') || 0) : 0);
     }, 0);
 
-    const mtd2024 = netsalesData.reduce((s, r) => {
+    const mtdLAST_YEAR = netsalesData.reduce((s, r) => {
         const d = new Date(r[2]);
-        if (d.getFullYear() !== 2024 || d.toLocaleString('en-US',{month:'long'}) !== month) return s;
+        if (d.getFullYear() !== LAST_YEAR || d.toLocaleString('en-US',{month:'long'}) !== month) return s;
         const day = d.getDate();
         if (day < (1 + shift) || day > (elapsedDays + shift)) return s;
         const v = r[idx];
         return s + (v && v.toString().trim() !== '' ? parseFloat(v.toString().replace(/[^0-9.-]+/g, '') || 0) : 0);
     }, 0);
 
-    const rom2024 = netsalesData.reduce((s, r) => {
+    const romLAST_YEAR = netsalesData.reduce((s, r) => {
         const d = new Date(r[2]);
-        if (d.getFullYear() !== 2024) return s;
+        if (d.getFullYear() !== LAST_YEAR) return s;
         const rowMonth = d.toLocaleString('en-US', { month: 'long' });
         const day = d.getDate();
 
@@ -819,17 +828,17 @@ let romTarget = growthType === 'percent' ? rom2024 * (1 + growthTarget / 100) : 
     }, 0);
 
     let mtdTarget, romTarget;
-    const total2024 = mtd2024 + rom2024;
+    const totalLAST_YEAR = mtdLAST_YEAR + romLAST_YEAR;
     const growthAmount = growthTarget * 1000;
 
     if (growthType === 'percent') {
         const factor = 1 + growthTarget / 100;
-        mtdTarget = mtd2024 * factor;
-        romTarget = rom2024 * factor;
+        mtdTarget = mtdLAST_YEAR * factor;
+        romTarget = romLAST_YEAR * factor;
         } else {
         const growthAmount = growthTarget * 1000;
 
-        // Calculate average sales per weekday in 2024 for the month
+        // Calculate average sales per weekday in LAST_YEAR for the month
         const dayAverages = {};
         const days = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
         days.forEach(d => dayAverages[d] = 0);
@@ -839,7 +848,7 @@ let romTarget = growthType === 'percent' ? rom2024 * (1 + growthTarget / 100) : 
 
         netsalesData.forEach(row => {
             const d = new Date(row[2]);
-            if (d.getFullYear() !== 2024 || 
+            if (d.getFullYear() !== LAST_YEAR || 
                 d.toLocaleString('en-US', { month: 'long' }) !== month) return;
 
             const dayName = d.toLocaleString('en-US', { weekday: 'long' });
@@ -859,7 +868,7 @@ let romTarget = growthType === 'percent' ? rom2024 * (1 + growthTarget / 100) : 
         // Count how many of each weekday in the month
         const monthDayCount = { Monday: 0, Tuesday: 0, Wednesday: 0, Thursday: 0, Friday: 0, Saturday: 0, Sunday: 0 };
         for (let d = 1; d <= totalDays; d++) {
-            const date = new Date(2025, monthIndex, d);
+            const date = new Date(CURRENT_YEAR, monthIndex, d);
             const dayName = date.toLocaleString('en-US', { weekday: 'long' });
             monthDayCount[dayName]++;
         }
@@ -875,7 +884,7 @@ let romTarget = growthType === 'percent' ? rom2024 * (1 + growthTarget / 100) : 
         let romExpected = 0;
 
         for (let d = 1; d <= totalDays; d++) {
-            const date = new Date(2025, monthIndex, d);
+            const date = new Date(CURRENT_YEAR, monthIndex, d);
             const dayName = date.toLocaleString('en-US', { weekday: 'long' });
             const expected = dayAverages[dayName];
 
@@ -890,24 +899,24 @@ let romTarget = growthType === 'percent' ? rom2024 * (1 + growthTarget / 100) : 
         const mtdShare = totalExpected > 0 ? mtdExpected / totalExpected : 0;
         const romShare = totalExpected > 0 ? romExpected / totalExpected : 0;
 
-        mtdTarget = Math.round(mtd2024 + growthAmount * mtdShare);
-        romTarget = Math.round(rom2024 + growthAmount * romShare);
+        mtdTarget = Math.round(mtdLAST_YEAR + growthAmount * mtdShare);
+        romTarget = Math.round(romLAST_YEAR + growthAmount * romShare);
     }
 
     mtdTarget = Math.round(mtdTarget);
     romTarget = Math.round(romTarget);
 
-    const rom2025 = mtd2024 > 0 ? rom2024 * (mtd2025 / mtd2024) : 0;
+    const romCURRENT_YEAR = mtdLAST_YEAR > 0 ? romLAST_YEAR * (mtdCURRENT_YEAR / mtdLAST_YEAR) : 0;
 
     return {
-        mtd2024: Math.round(mtd2024),
-        mtd2025: Math.round(mtd2025),
+        mtdLAST_YEAR: Math.round(mtdLAST_YEAR),
+        mtdCURRENT_YEAR: Math.round(mtdCURRENT_YEAR),
         mtdTarget: mtdTarget,
-        rom2024: Math.round(rom2024),
-        rom2025: Math.round(rom2025),
+        romLAST_YEAR: Math.round(romLAST_YEAR),
+        romCURRENT_YEAR: Math.round(romCURRENT_YEAR),
         romTarget: romTarget,
         elapsedDays: elapsedDays,
-        last2025: last2025  // ADD THIS
+        lastCURRENT_YEAR: lastCURRENT_YEAR  // ADD THIS
     };
 }
 
@@ -961,43 +970,43 @@ const ctx = canvas.getContext('2d');
     let datasets = [];
     switch (sectionId) {
         case 'metrics-h2':
-    // Bar chart: 2024 vs 2025 by day of week (Sales/Orders/AOV based on sub-view)
+    // Bar chart: LAST_YEAR vs CURRENT_YEAR by day of week (Sales/Orders/AOV based on sub-view)
     const avgs = calculateAverages(store, month);
     const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
-    let data2024 = [], data2025 = [], subViewTitle = '';
+    let dataLAST_YEAR = [], dataCURRENT_YEAR = [], subViewTitle = '';
     if (currentMetricsSubView === 'orders') {
-        data2024 = days.map(d => avgs.ordersAverages2024[d].length ? Math.round(avgs.ordersAverages2024[d].reduce((a, b) => a + b, 0) / avgs.ordersAverages2024[d].length) : 0);
-        data2025 = days.map(d => avgs.ordersAverages2025[d].length ? Math.round(avgs.ordersAverages2025[d].reduce((a, b) => a + b, 0) / avgs.ordersAverages2025[d].length) : 0);
+        dataLAST_YEAR = days.map(d => avgs.ordersAveragesLastYear[d].length ? Math.round(avgs.ordersAveragesLastYear[d].reduce((a, b) => a + b, 0) / avgs.ordersAveragesLastYear[d].length) : 0);
+        dataCURRENT_YEAR = days.map(d => avgs.ordersAveragesCurrentYear[d].length ? Math.round(avgs.ordersAveragesCurrentYear[d].reduce((a, b) => a + b, 0) / avgs.ordersAveragesCurrentYear[d].length) : 0);
         subViewTitle = 'Orders';
     } else if (currentMetricsSubView === 'aov') {
-        data2024 = days.map(d => {
-            const s24 = avgs.salesAverages2024[d].length ? Math.round(avgs.salesAverages2024[d].reduce((a, b) => a + b, 0) / avgs.salesAverages2024[d].length) : 0;
-            const o24 = avgs.ordersAverages2024[d].length ? Math.round(avgs.ordersAverages2024[d].reduce((a, b) => a + b, 0) / avgs.ordersAverages2024[d].length) : 0;
+        dataLAST_YEAR = days.map(d => {
+            const s24 = avgs.salesAveragesLastYear[d].length ? Math.round(avgs.salesAveragesLastYear[d].reduce((a, b) => a + b, 0) / avgs.salesAveragesLastYear[d].length) : 0;
+            const o24 = avgs.ordersAveragesLastYear[d].length ? Math.round(avgs.ordersAveragesLastYear[d].reduce((a, b) => a + b, 0) / avgs.ordersAveragesLastYear[d].length) : 0;
             return o24 > 0 ? (s24 / o24).toFixed(2) : 0;
         });
-        data2025 = days.map(d => {
-            const s25 = avgs.salesAverages2025[d].length ? Math.round(avgs.salesAverages2025[d].reduce((a, b) => a + b, 0) / avgs.salesAverages2025[d].length) : 0;
-            const o25 = avgs.ordersAverages2025[d].length ? Math.round(avgs.ordersAverages2025[d].reduce((a, b) => a + b, 0) / avgs.ordersAverages2025[d].length) : 0;
+        dataCURRENT_YEAR = days.map(d => {
+            const s25 = avgs.salesAveragesCurrentYear[d].length ? Math.round(avgs.salesAveragesCurrentYear[d].reduce((a, b) => a + b, 0) / avgs.salesAveragesCurrentYear[d].length) : 0;
+            const o25 = avgs.ordersAveragesCurrentYear[d].length ? Math.round(avgs.ordersAveragesCurrentYear[d].reduce((a, b) => a + b, 0) / avgs.ordersAveragesCurrentYear[d].length) : 0;
             return o25 > 0 ? (s25 / o25).toFixed(2) : 0;
         });
         subViewTitle = 'AOV';
     } else {  // 'sales' default
-        data2024 = days.map(d => avgs.salesAverages2024[d].length ? Math.round(avgs.salesAverages2024[d].reduce((a, b) => a + b, 0) / avgs.salesAverages2024[d].length) : 0);
-        data2025 = days.map(d => avgs.salesAverages2025[d].length ? Math.round(avgs.salesAverages2025[d].reduce((a, b) => a + b, 0) / avgs.salesAverages2025[d].length) : 0);
+        dataLAST_YEAR = days.map(d => avgs.salesAveragesLastYear[d].length ? Math.round(avgs.salesAveragesLastYear[d].reduce((a, b) => a + b, 0) / avgs.salesAveragesLastYear[d].length) : 0);
+        dataCURRENT_YEAR = days.map(d => avgs.salesAveragesCurrentYear[d].length ? Math.round(avgs.salesAveragesCurrentYear[d].reduce((a, b) => a + b, 0) / avgs.salesAveragesCurrentYear[d].length) : 0);
         subViewTitle = 'Sales';
     }
     labels = days;
     datasets = [
         {
-            label: `${subViewTitle} 2024`,
-            data: data2024,
+            label: `${subViewTitle} LAST_YEAR`,
+            data: dataLAST_YEAR,
             backgroundColor: 'rgba(54, 162, 235, 0.5)',
             borderColor: 'rgba(54, 162, 235, 1)',
             borderWidth: 1
         },
         {
-            label: `${subViewTitle} 2025`,
-            data: data2025,
+            label: `${subViewTitle} CURRENT_YEAR`,
+            data: dataCURRENT_YEAR,
             backgroundColor: 'rgba(255, 99, 132, 0.5)',
             borderColor: 'rgba(255, 99, 132, 1)',
             borderWidth: 1
@@ -1005,20 +1014,20 @@ const ctx = canvas.getContext('2d');
     ];
     break;
 case 'forecast-h2':
-    // Grouped bar chart: MTD and ROM for 2024, Target, 2025
+    // Grouped bar chart: MTD and ROM for LAST_YEAR, Target, CURRENT_YEAR
     const forecastData = calculateSalesData(store, month);
-    labels = ['2024', 'Target', '2025'];
+    labels = ['LAST_YEAR', 'Target', 'CURRENT_YEAR'];
     datasets = [
         {
             label: 'MTD ($)',
-            data: [forecastData.mtd2024, forecastData.mtdTarget, forecastData.mtd2025],
+            data: [forecastData.mtdLAST_YEAR, forecastData.mtdTarget, forecastData.mtdCURRENT_YEAR],
             backgroundColor: 'rgba(54, 162, 235, 0.8)',
             borderColor: 'rgba(54, 162, 235, 1)',
             borderWidth: 1
         },
         {
             label: 'ROM ($)',
-            data: [forecastData.rom2024, forecastData.romTarget, forecastData.rom2025],
+            data: [forecastData.romLAST_YEAR, forecastData.romTarget, forecastData.romCURRENT_YEAR],
             backgroundColor: 'rgba(255, 159, 64, 0.8)',
             borderColor: 'rgba(255, 159, 64, 1)',
             borderWidth: 1
@@ -1030,15 +1039,15 @@ case 'forecast-h2':
             // Bar chart: Scenario ROM values
             const scenarioData = calculateSalesData(store, month);
             
-            const mtdGrowthPct = scenarioData.mtd2024 > 0 ? ((scenarioData.mtd2025 / scenarioData.mtd2024) - 1) * 100 : 0;
+            const mtdGrowthPct = scenarioData.mtdLAST_YEAR > 0 ? ((scenarioData.mtdCURRENT_YEAR / scenarioData.mtdLAST_YEAR) - 1) * 100 : 0;
             labels = [
-                `${month} 2024 Repeats`,
+                `${month} LAST_YEAR Repeats`,
                 `${month} at ${growthTarget}${growthType === 'dollar' ? 'K' : '%'} Growth`,
                 `${month} at Current Rate ${formatPercent(mtdGrowthPct).replace('%', '')}%`
             ];
             datasets = [{
                 label: 'ROM ($)',
-                data: [scenarioData.rom2024, scenarioData.romTarget, scenarioData.rom2025],
+                data: [scenarioData.romLAST_YEAR, scenarioData.romTarget, scenarioData.romCURRENT_YEAR],
                 backgroundColor: 'rgba(75, 192, 192, 0.5)',
                 borderColor: 'rgba(75, 192, 192, 1)',
                 borderWidth: 1
@@ -1080,7 +1089,7 @@ datasets = [
 ];
             break;
 case 'daycount-h2':
-    // Bar chart: 2024 vs 2025 Day Counts (Weekdays/Weekends)
+    // Bar chart: LAST_YEAR vs CURRENT_YEAR Day Counts (Weekdays/Weekends)
     const categories = ['Weekdays', 'Weekends'];
     let lastYearWeekdays = 0, lastYearWeekends = 0;
     let elapsedWeekdays = 0, elapsedWeekends = 0;
@@ -1096,49 +1105,49 @@ case 'daycount-h2':
         if (!value || value.toString().trim() === '') return;
         const year = date.getFullYear();
         const dayIndex = date.getDay();
-        if (year === 2024) {
+        if (year === LAST_YEAR) {
             if (dayIndex >= 1 && dayIndex <= 5) lastYearWeekdays++;
             else lastYearWeekends++;
-        } else if (year === 2025) {
+        } else if (year === CURRENT_YEAR) {
             if (dayIndex >= 1 && dayIndex <= 5) elapsedWeekdays++;
             else elapsedWeekends++;
             if (!lastRecordedDate || date > lastRecordedDate) lastRecordedDate = date;
         }
     });
-    // Calculate remaining for 2025
+    // Calculate remaining for CURRENT_YEAR
     if (month && !lastRecordedDate) {
         const monthIndex = ['January','February','March','April','May','June','July','August','September','October','November','December'].indexOf(month);
-        const lastDayOfMonth = new Date(2025, monthIndex + 1, 0).getDate();
+        const lastDayOfMonth = new Date(CURRENT_YEAR, monthIndex + 1, 0).getDate();
         for (let d = 1; d <= lastDayOfMonth; d++) {
-            const date = new Date(2025, monthIndex, d);
+            const date = new Date(CURRENT_YEAR, monthIndex, d);
             const dayIndex = date.getDay();
             if (dayIndex >= 1 && dayIndex <= 5) remainingWeekdays++;
             else remainingWeekends++;
         }
     } else if (month && lastRecordedDate) {
         const monthIndex = ['January','February','March','April','May','June','July','August','September','October','November','December'].indexOf(month);
-        const lastDayOfMonth = new Date(2025, monthIndex + 1, 0).getDate();
+        const lastDayOfMonth = new Date(CURRENT_YEAR, monthIndex + 1, 0).getDate();
         for (let d = lastRecordedDate.getDate() + 1; d <= lastDayOfMonth; d++) {
-            const date = new Date(2025, monthIndex, d);
+            const date = new Date(CURRENT_YEAR, monthIndex, d);
             const dayIndex = date.getDay();
             if (dayIndex >= 1 && dayIndex <= 5) remainingWeekdays++;
             else remainingWeekends++;
         }
     }
-    const total2025Weekdays = elapsedWeekdays + remainingWeekdays;
-    const total2025Weekends = elapsedWeekends + remainingWeekends;
+    const totalCURRENT_YEARWeekdays = elapsedWeekdays + remainingWeekdays;
+    const totalCURRENT_YEARWeekends = elapsedWeekends + remainingWeekends;
     labels = categories;
     datasets = [
         {
-            label: '2024 Counts',
+            label: 'LAST_YEAR Counts',
             data: [lastYearWeekdays, lastYearWeekends],
             backgroundColor: 'rgba(54, 162, 235, 0.5)',
             borderColor: 'rgba(54, 162, 235, 1)',
             borderWidth: 1
         },
         {
-            label: '2025 Projected Total',
-            data: [total2025Weekdays, total2025Weekends],
+            label: 'CURRENT_YEAR Projected Total',
+            data: [totalCURRENT_YEARWeekdays, totalCURRENT_YEARWeekends],
             backgroundColor: 'rgba(255, 99, 132, 0.5)',
             borderColor: 'rgba(255, 99, 132, 1)',
             borderWidth: 1
@@ -1270,9 +1279,9 @@ if (growthTargetSel) growthTargetSel.addEventListener('change', () => {
                 if (refreshed) {
                     populateMonthDropdown();
 
-                    // Auto-select current month if it's 2025
+                    // Auto-select current month if it's CURRENT_YEAR
                     const now = new Date();
-                    if (now.getFullYear() === 2025) {
+                    if (now.getFullYear() === CURRENT_YEAR) {
                         const currentMonth = now.toLocaleString('en-US', { month: 'long' });
                         const monthSel = document.getElementById('month-filter');
                         if (monthSel && monthSel.querySelector(`option[value="${currentMonth}"]`)) {
@@ -1307,33 +1316,33 @@ function getNextDayTargetedNetSales(store, month, remaining$, netsalesData, next
 
     const nextWeekday = nextDayDate.toLocaleString('en-US', { weekday: 'long' });
     const monthIndex = ['January','February','March','April','May','June','July','August','September','October','November','December'].indexOf(month);
-    const totalDays = new Date(2025, monthIndex + 1, 0).getDate();
+    const totalDays = new Date(CURRENT_YEAR, monthIndex + 1, 0).getDate();
 
     // Count remaining days of each weekday
     const remainingCount = { Monday: 0, Tuesday: 0, Wednesday: 0, Thursday: 0, Friday: 0, Saturday: 0, Sunday: 0 };
     for (let d = nextDayDate.getDate(); d <= totalDays; d++) {
-        const date = new Date(2025, monthIndex, d);
+        const date = new Date(CURRENT_YEAR, monthIndex, d);
         const dayName = date.toLocaleString('en-US', { weekday: 'long' });
         remainingCount[dayName]++;
     }
 
     const nextDayCount = remainingCount[nextWeekday];
 
-    // Use 2025 if ≥7 days, else 2024
-    let days2025 = 0;
+    // Use CURRENT_YEAR if ≥7 days, else LAST_YEAR
+    let daysCURRENT_YEAR = 0;
     netsalesData.forEach(row => {
         const d = new Date(row[2]);
-        if (d.getFullYear() === 2025 && 
+        if (d.getFullYear() === CURRENT_YEAR && 
             d.toLocaleString('en-US', { month: 'long' }) === month) {
             const val = row[storeColumns[store]];
             if (val != null && val.toString().trim() !== '') {
-                days2025++;
+                daysCURRENT_YEAR++;
             }
         }
     });
 
-    const use2025 = days2025 >= 7;
-    const sourceYear = use2025 ? '2025' : '2024';
+    const useCURRENT_YEAR = daysCURRENT_YEAR >= 7;
+    const sourceYear = useCURRENT_YEAR ? 'CURRENT_YEAR' : 'LAST_YEAR';
 
     // Calculate averages for THIS store and month
     const dayAverages = {};
@@ -1347,11 +1356,11 @@ function getNextDayTargetedNetSales(store, month, remaining$, netsalesData, next
 
     netsalesData.forEach(row => {
         const d = new Date(row[2]);
-        if (d.getFullYear() !== (use2025 ? 2025 : 2024) || 
+        if (d.getFullYear() !== (useCURRENT_YEAR ? CURRENT_YEAR : LAST_YEAR) || 
             d.toLocaleString('en-US', { month: 'long' }) !== month) return;
 
         // Only include days that have occurred
-        if (use2025 && lastDataDate && d > lastDataDate) return;
+        if (useCURRENT_YEAR && lastDataDate && d > lastDataDate) return;
 
         const dayName = d.toLocaleString('en-US', { weekday: 'long' });
         const cell = row[storeColumns[store]];
@@ -1441,17 +1450,17 @@ function updateSummaryTable(store, month) {
     tbody.innerHTML = '';
 
     const monthIndex = ['January','February','March','April','May','June','July','August','September','October','November','December'].indexOf(month);
-    const totalDays = new Date(2025, monthIndex + 1, 0).getDate();
+    const totalDays = new Date(CURRENT_YEAR, monthIndex + 1, 0).getDate();
     
 
     // === Skip targets for past months ===
     const now = new Date();
-    const monthEnd = new Date(2025, monthIndex + 1, 0); // last day of month
+    const monthEnd = new Date(CURRENT_YEAR, monthIndex + 1, 0); // last day of month
     const isPastMonth = now > monthEnd;
 
     // === Calculate growth values (needed for both paths) ===
-    const mtdGrowth$ = data.mtd2025 - data.mtd2024;
-    const mtdGrowthPct = data.mtd2024 > 0 ? ((data.mtd2025 / data.mtd2024) - 1) * 100 : 0;
+    const mtdGrowth$ = data.mtdCURRENT_YEAR - data.mtdLAST_YEAR;
+    const mtdGrowthPct = data.mtdLAST_YEAR > 0 ? ((data.mtdCURRENT_YEAR / data.mtdLAST_YEAR) - 1) * 100 : 0;
 
     if (isPastMonth) {
         const rows = [
@@ -1467,7 +1476,7 @@ function updateSummaryTable(store, month) {
                     ${formatPercent(mtdGrowthPct)}, 
                     ${formatNumber(mtdGrowth$)}
                 </span>`,
-                `$${data.mtd2024.toLocaleString()}<sub><small>2024</small></sub> → $${data.mtd2025.toLocaleString()}<sub><small>2025</small></sub>`
+                `$${data.mtdLAST_YEAR.toLocaleString()}<sub><small>LAST_YEAR</small></sub> → $${data.mtdCURRENT_YEAR.toLocaleString()}<sub><small>CURRENT_YEAR</small></sub>`
             ]
         ];
 
@@ -1504,14 +1513,14 @@ function updateSummaryTable(store, month) {
         return;
     }
 
-         // === Next Day – first blank day in 2025 ===
+         // === Next Day – first blank day in CURRENT_YEAR ===
     let nextDayLabel = "Next Day (No data yet)";
 
     const lastDataDate = getLastDataDate(store, month);
     let firstBlankDay;
 
-    if (lastDataDate === null || lastDataDate < new Date(2025, monthIndex, 1)) {
-        firstBlankDay = new Date(2025, monthIndex, 1); // first day of selected month
+    if (lastDataDate === null || lastDataDate < new Date(CURRENT_YEAR, monthIndex, 1)) {
+        firstBlankDay = new Date(CURRENT_YEAR, monthIndex, 1); // first day of selected month
     } else {
         firstBlankDay = new Date(lastDataDate);
         firstBlankDay.setDate(firstBlankDay.getDate() + 1);
@@ -1526,11 +1535,11 @@ function updateSummaryTable(store, month) {
     }
 
     const overallTarget = data.mtdTarget + data.romTarget;
-    const remaining$ = overallTarget - data.mtd2025;
-    const growthNeededPct = data.rom2024 > 0 ? ((remaining$ / data.rom2024) - 1) * 100 : 0;
+    const remaining$ = overallTarget - data.mtdCURRENT_YEAR;
+    const growthNeededPct = data.romLAST_YEAR > 0 ? ((remaining$ / data.romLAST_YEAR) - 1) * 100 : 0;
 
     const growthAmount = growthType === 'percent' 
-        ? (data.mtd2024 + data.rom2024) * (growthTarget / 100) 
+        ? (data.mtdLAST_YEAR + data.romLAST_YEAR) * (growthTarget / 100) 
         : growthTarget * 1000;
 
     const nextDayTarget = getNextDayTargetedNetSales(store, month, remaining$, netsalesData, firstBlankDay);
@@ -1654,33 +1663,33 @@ if (!container || (rowKey !== 'next-day' && rowKey !== 'mtd-growth' && rowKey !=
             container.innerHTML = '<p style="text-align:center; color:#666;">Select a month for calendar view.</p>';
             return;
         }
-        const totalDays = new Date(2025, monthIndex + 1, 0).getDate();
+        const totalDays = new Date(CURRENT_YEAR, monthIndex + 1, 0).getDate();
         const isAdjusted = document.getElementById('adjusted-toggle').checked || false;
-        const currentDate = new Date('2025-11-08'); // Fixed for demo
-        const isPastMonth = currentDate > new Date(2025, monthIndex + 1, 0);
+        const currentDate = CURRENT_DATE; // Fixed for demo
+        const isPastMonth = currentDate > new Date(CURRENT_YEAR, monthIndex + 1, 0);
         const lastDataDate = getLastDataDate(store, month);
-        const elapsedDay2025 = lastDataDate ? lastDataDate.getDate() : (monthIndex < currentDate.getMonth() ? totalDays : Math.min(currentDate.getDate(), totalDays));
-        const nextDay2025 = new Date(2025, monthIndex, elapsedDay2025 + 1);
-        const isMonthComplete = nextDay2025.getDate() > totalDays || isPastMonth; // Add isPastMonth to complete status
-        // Elapsed for 2024 (with shift)
+        const elapsedDayCURRENT_YEAR = lastDataDate ? lastDataDate.getDate() : (monthIndex < currentDate.getMonth() ? totalDays : Math.min(currentDate.getDate(), totalDays));
+        const nextDayCURRENT_YEAR = new Date(CURRENT_YEAR, monthIndex, elapsedDayCURRENT_YEAR + 1);
+        const isMonthComplete = nextDayCURRENT_YEAR.getDate() > totalDays || isPastMonth; // Add isPastMonth to complete status
+        // Elapsed for LAST_YEAR (with shift)
         const shift = isAdjusted ? 1 : 0;
-        const elapsedStart2024 = 1 + shift;
-        const elapsedEnd2024 = elapsedDay2025 + shift;
+        const elapsedStartLAST_YEAR = 1 + shift;
+        const elapsedEndLAST_YEAR = elapsedDayCURRENT_YEAR + shift;
         // Build calendars
         let html = `
             <div style="text-align: center; margin: 10px 0;">
-                <h3 style="color: #34495e; margin: 0;">Month Comparison: ${month} 2024 vs. 2025 (Elapsed Days Highlighted)</h3>
+                <h3 style="color: #34495e; margin: 0;">Month Comparison: ${month} LAST_YEAR vs. CURRENT_YEAR (Elapsed Days Highlighted)</h3>
                 <p style="color: #666; font-size: 0.9em;">Green: Elapsed | Outlined: Next Day | Bold: Has Data</p>
             </div>
             <div style="display: flex; justify-content: center; gap: 20px; flex-wrap: wrap;">
         `;
-        [2024, 2025].forEach(year => {
-            const is2025 = year === 2025;
+        [LAST_YEAR, CURRENT_YEAR].forEach(year => {
+            const isCURRENT_YEAR = year === CURRENT_YEAR;
             let totalDaysEffective = totalDays;
             let adjMonthIndex = -1;
             let adjYear = year;
             let adjDate = null;
-            if (!is2025 && isAdjusted) {
+            if (!isCURRENT_YEAR && isAdjusted) {
                 totalDaysEffective = totalDays + 1;
                 adjMonthIndex = (monthIndex + 1) % 12;
                 adjYear = monthIndex === 11 ? year + 1 : year;
@@ -1691,12 +1700,12 @@ if (!container || (rowKey !== 'next-day' && rowKey !== 'mtd-growth' && rowKey !=
             const weeks = Math.ceil((totalDaysEffective + firstDay) / 7);
             // Precompute data per day (sales $, orders #) - for this year only
             const dayDataCurrent = {};
-            const loopDays = is2025 ? totalDays : totalDaysEffective;
+            const loopDays = isCURRENT_YEAR ? totalDays : totalDaysEffective;
             for (let d = 1; d <= loopDays; d++) {
                 dayDataCurrent[d] = { sales: 0, orders: 0 };
                 // Fetch sales/orders for this year
                 let fetchDate = new Date(year, monthIndex, d);
-                if (!is2025 && isAdjusted && d > totalDays) {
+                if (!isCURRENT_YEAR && isAdjusted && d > totalDays) {
                     fetchDate = adjDate;
                 }
                 netsalesData.forEach(row => {
@@ -1710,8 +1719,8 @@ if (!container || (rowKey !== 'next-day' && rowKey !== 'mtd-growth' && rowKey !=
                 });
             }
             const dayData = dayDataCurrent;
-            const elapsedStart = is2025 ? 1 : elapsedStart2024;
-            const elapsedEnd = is2025 ? elapsedDay2025 : Math.min(elapsedEnd2024, totalDaysEffective);
+            const elapsedStart = isCURRENT_YEAR ? 1 : elapsedStartLAST_YEAR;
+            const elapsedEnd = isCURRENT_YEAR ? elapsedDayCURRENT_YEAR : Math.min(elapsedEndLAST_YEAR, totalDaysEffective);
             html += `
                 <div style="min-width: 200px;">
                     <h4 style="text-align: center; color: #2c3e50; margin: 5px 0;">${year} ${month}</h4>
@@ -1741,13 +1750,13 @@ if (!container || (rowKey !== 'next-day' && rowKey !== 'mtd-growth' && rowKey !=
                         } else if (day > elapsedEnd) {
                             cellStyle += ' background-color: #f8f9fa;'; // Light gray
                         }
-                        // Next Day (2025 only, skip for past months) - outline here
-                        if (is2025 && !isPastMonth && day === nextDay2025.getDate() && !isMonthComplete) {
+                        // Next Day (CURRENT_YEAR only, skip for past months) - outline here
+                        if (isCURRENT_YEAR && !isPastMonth && day === nextDayCURRENT_YEAR.getDate() && !isMonthComplete) {
                             cellStyle += ' border: 2px solid #28a745 !important; background-color: #fff3cd !important;'; // Yellow bg + Green outline
                         }
                         let dayLabel = day.toString();
                         let titleDate = `${month} ${day}, ${year}`;
-                        if (!is2025 && isAdjusted && day > totalDays) {
+                        if (!isCURRENT_YEAR && isAdjusted && day > totalDays) {
                             const adjMonthShort = adjDate.toLocaleDateString('en-US', { month: 'short' });
                             dayLabel = `${adjMonthShort} 1`;
                             titleDate = `${adjMonthShort} 1, ${adjYear}`;
@@ -1783,13 +1792,13 @@ if (!container || (rowKey !== 'next-day' && rowKey !== 'mtd-growth' && rowKey !=
             return;
         }
         container.innerHTML = ''; // Clear any old content
-        const totalDays = new Date(2025, monthIndex + 1, 0).getDate();
+        const totalDays = new Date(CURRENT_YEAR, monthIndex + 1, 0).getDate();
         const shift = document.getElementById('adjusted-toggle')?.checked ? 1 : 0;
         const idx = storeColumns[store];
 
-        // Collect and sort daily sales for 2024 and 2025
-        const sales2024 = {};
-        const sales2025 = {};
+        // Collect and sort daily sales for LAST_YEAR and CURRENT_YEAR
+        const salesLAST_YEAR = {};
+        const salesCURRENT_YEAR = {};
         netsalesData.forEach(row => {
             const d = new Date(row[2]);
             if (isNaN(d) || d.toLocaleString('en-US', { month: 'long' }) !== month) return;
@@ -1797,38 +1806,38 @@ if (!container || (rowKey !== 'next-day' && rowKey !== 'mtd-growth' && rowKey !=
             const sales = parseFloat(row[idx]?.toString().replace(/[^0-9.-]+/g, '') || 0);
             if (sales === 0) return;
             const year = d.getFullYear();
-            if (year === 2024) {
-                // Apply shift for 2024
+            if (year === LAST_YEAR) {
+                // Apply shift for LAST_YEAR
                 const adjDay = day - shift;
                 if (adjDay >= 1 && adjDay <= totalDays) {
-                    sales2024[adjDay] = (sales2024[adjDay] || 0) + sales;
+                    salesLAST_YEAR[adjDay] = (salesLAST_YEAR[adjDay] || 0) + sales;
                 }
-            } else if (year === 2025) {
-                sales2025[day] = (sales2025[day] || 0) + sales; // 2025 no shift
+            } else if (year === CURRENT_YEAR) {
+                salesCURRENT_YEAR[day] = (salesCURRENT_YEAR[day] || 0) + sales; // CURRENT_YEAR no shift
             }
         });
 
         // Compute cumulatives
-        const cum2024 = [];
-        const cum2025 = [];
-        let running2024 = 0;
-        let running2025 = 0;
+        const cumLAST_YEAR = [];
+        const cumCURRENT_YEAR = [];
+        let runningLAST_YEAR = 0;
+        let runningCURRENT_YEAR = 0;
         for (let day = 1; day <= totalDays; day++) {
-            running2024 += sales2024[day] || 0;
-            running2025 += sales2025[day] || 0;
-            cum2024.push(running2024);
-            cum2025.push(running2025);
+            runningLAST_YEAR += salesLAST_YEAR[day] || 0;
+            runningCURRENT_YEAR += salesCURRENT_YEAR[day] || 0;
+            cumLAST_YEAR.push(runningLAST_YEAR);
+            cumCURRENT_YEAR.push(runningCURRENT_YEAR);
         }
 
-// Calculate elapsed days for cutoff (use 2025 last data date or current if no data)
+// Calculate elapsed days for cutoff (use CURRENT_YEAR last data date or current if no data)
 const lastDataDate = getLastDataDate(store, month);
 const elapsedDays = lastDataDate ? lastDataDate.getDate() : new Date().getDate();
 const cutoffDay = Math.min(elapsedDays, totalDays);
 
 // Slice arrays to cutoff
 const labels = Array.from({length: cutoffDay}, (_, i) => i + 1);
-const slicedCum2024 = cum2024.slice(0, cutoffDay);
-const slicedCum2025 = cum2025.slice(0, cutoffDay);
+const slicedCumLAST_YEAR = cumLAST_YEAR.slice(0, cutoffDay);
+const slicedCumCURRENT_YEAR = cumCURRENT_YEAR.slice(0, cutoffDay);
 
 
 
@@ -1849,16 +1858,16 @@ const slicedCum2025 = cum2025.slice(0, cutoffDay);
                 labels: labels,
                 datasets: [
                     {
-                        label: 'Cumulative 2024',
-                        data: slicedCum2024,
+                        label: 'Cumulative LAST_YEAR',
+                        data: slicedCumLAST_YEAR,
                         borderColor: 'rgba(54, 162, 235, 1)',
                         backgroundColor: 'rgba(54, 162, 235, 0.2)',
                         tension: 0.1,
                         fill: false
                     },
                     {
-                        label: 'Cumulative 2025',
-                        data: slicedCum2025,
+                        label: 'Cumulative CURRENT_YEAR',
+                        data: slicedCumCURRENT_YEAR,
                         borderColor: 'rgba(255, 99, 132, 1)',
                         backgroundColor: 'rgba(255, 99, 132, 0.2)',
                         tension: 0.1,
@@ -1897,28 +1906,28 @@ if (rowKey === 'remaining-target') {
     const month = document.getElementById('month-filter').value || '';
     const data = calculateSalesData(store, month);
     const overallTarget = data.mtdTarget + data.romTarget;
-    const remainingToTarget = overallTarget - data.mtd2025;
-    const total2024 = data.mtd2024 + data.rom2024;
-    const labels = ['2024 Full Month', '2025 MTD', 'Remaining to Target', '2025 Target'];
+    const remainingToTarget = overallTarget - data.mtdCURRENT_YEAR;
+    const totalLAST_YEAR = data.mtdLAST_YEAR + data.romLAST_YEAR;
+    const labels = ['LAST_YEAR Full Month', 'CURRENT_YEAR MTD', 'Remaining to Target', 'CURRENT_YEAR Target'];
     const remainingColor = remainingToTarget > 0 ? 'rgba(255, 206, 86, 0.8)' : (remainingToTarget < 0 ? 'rgba(255, 99, 132, 0.8)' : 'rgba(150, 150, 150, 0.8)');
     const datasets = [
         {
-            label: '2024 Full Month',
-            data: [total2024, null, null, null],
+            label: 'LAST_YEAR Full Month',
+            data: [totalLAST_YEAR, null, null, null],
             backgroundColor: 'rgba(54, 162, 235, 0.8)'
         },
         {
-            label: '2025 MTD',
-            data: [null, data.mtd2025, null, null],
+            label: 'CURRENT_YEAR MTD',
+            data: [null, data.mtdCURRENT_YEAR, null, null],
             backgroundColor: 'rgba(75, 192, 192, 0.8)'
         },
         {
             label: 'Remaining to Target',
-            data: [null, null, remainingToTarget !== 0 ? [data.mtd2025, overallTarget] : null, null],
+            data: [null, null, remainingToTarget !== 0 ? [data.mtdCURRENT_YEAR, overallTarget] : null, null],
             backgroundColor: remainingColor
         },
         {
-            label: '2025 Target',
+            label: 'CURRENT_YEAR Target',
             data: [null, null, null, overallTarget],
             backgroundColor: 'rgba(153, 102, 255, 0.8)'
         }
