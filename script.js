@@ -485,8 +485,8 @@ function updateCombinedMetricsTable(store, month) {
      // === MONTHLY TOTALS ROW ===
     const data = calculateSalesData(store, month);
     const shift = isAdjusted ? 1 : 0;
-    const monthlySales24 = data.mtdLAST_YEAR;
-    const monthlySales25 = data.mtdCURRENT_YEAR;
+    const monthlySales24 = data.mtdLastYear;
+    const monthlySales25 = data.mtdCurrentYear;
 
     // SAME EXACT LOGIC AS NET SALES MTD — BUT FOR ORDERS
     const monthlyOrders24 = ordersData.reduce((s, r) => {
@@ -500,7 +500,7 @@ function updateCombinedMetricsTable(store, month) {
 
     const monthlyOrders25 = ordersData.reduce((s, r) => {
         const d = new Date(r[2]);
-        if (d.getFullYear() !== CURRENT_YEAR || d > data.lastCURRENT_YEAR || d.toLocaleString('en-US',{month:'long'}) !== month) return s;
+        if (d.getFullYear() !== CURRENT_YEAR || d > data.lastCurrentYear || d.toLocaleString('en-US',{month:'long'}) !== month) return s;
         const v = r[storeColumns[store]];
         return s + (v && v.toString().trim() !== '' ? parseFloat(v.toString().replace(/[^0-9.-]+/g, '') || 0) : 0);
     }, 0);
@@ -628,12 +628,11 @@ function updateForecastTable(store, month) {
 
     const data = calculateSalesData(store, month);
 
-    const rows = [
-{ label: `${month} ${LAST_YEAR}`, mtd: data.mtdLastYear, rom: data.romLastYear },
-        { label: `${month} Growth Target ${growthTarget}${growthType === 'dollar' ? 'K' : '%'} `, mtd: data.mtdTarget, rom: data.romTarget },
-        { label: `${month} ${CURRENT_YEAR}`, mtd: data.mtdCurrentYear, rom: data.romCurrentYear }
-
-    ];
+const rows = [
+    { label: `${month} ${LAST_YEAR}`, mtd: data.mtdLastYear, rom: data.romLastYear },
+    { label: `Growth Target ${growthTarget}${growthType === 'dollar' ? 'K' : '%'}`, mtd: data.mtdTarget, rom: data.romTarget },
+    { label: `${month} ${CURRENT_YEAR}`, mtd: data.mtdCurrentYear, rom: data.romCurrentYear }
+];
 
     rows.forEach(r => {
         const row = document.createElement('tr');
@@ -654,29 +653,29 @@ function updateScenariosTable(store, month) {
     tbody.innerHTML = '';
 
     const data = calculateSalesData(store, month);
-    const mtdCURRENT_YEAR = data.mtdCURRENT_YEAR;
+    const mtdCurrentYear = data.mtdCurrentYear;
     const overallTarget = data.mtdTarget + data.romTarget;
 
-    const mtdGrowthPct = data.mtdLAST_YEAR > 0 ? ((data.mtdCURRENT_YEAR / data.mtdLAST_YEAR) - 1) * 100 : 0;
+    const mtdGrowthPct = data.mtdLastYear > 0 ? ((data.mtdCurrentYear / data.mtdLastYear) - 1) * 100 : 0;
 
-    const scenarios = [
-{ label: `${month} ${LAST_YEAR} Repeats`, rom: data.romLastYear },
-        { label: `${month} ${new Date().getFullYear()} at ${growthTarget}${growthType === 'dollar' ? 'K' : '%'} Growth Rate`, rom: data.romTarget },
-{ label: `${month} ${CURRENT_YEAR} at ${growthTarget}${growthType === 'dollar' ? 'K' : '%'} Growth Rate`, rom: data.romTarget }
-    ];
+const scenarios = [
+    { label: `${month} ${LAST_YEAR} Repeats`, rom: data.romLastYear },
+    { label: `${month} ${CURRENT_YEAR} at ${growthTarget}${growthType === 'dollar' ? 'K' : '%'} Growth Rate`, rom: data.romTarget },
+    { label: `${month} ${CURRENT_YEAR} at Current Rate ${formatPercent(mtdGrowthPct)}`, rom: data.romCurrentYear }
+];
 
     // MTD merged row
     const mtdRow = document.createElement('tr');
     mtdRow.innerHTML = `
         <td rowspan="${scenarios.length+1}" style="vertical-align: middle; text-align: center; font-weight: bold;">
-            ${formatNumber(mtdCURRENT_YEAR)}
+            ${formatNumber(mtdCurrentYear)}
         </td>
     `;
     tbody.appendChild(mtdRow);
 
     // Scenario rows
     scenarios.forEach(scenario => {
-        const total = mtdCURRENT_YEAR + scenario.rom;
+        const total = mtdCurrentYear + scenario.rom;
         const diff = total - overallTarget;
         const color = diff >= 0 ? 'green' : 'red';
 
@@ -704,8 +703,8 @@ function calculateSalesData(store, month) {
     const lastDayCURRENT_YEAR = new Date(CURRENT_YEAR, monthIndex + 1, 0);
     const monthEnded = now > lastDayCURRENT_YEAR;
 
-    let lastCURRENT_YEAR = null;
-    let mtdCURRENT_YEAR = 0;
+    let lastCurrentYear = null;
+    let mtdCurrentYear = 0;
     let isMonthStarted = false;
 
     netsalesData.forEach(row => {
@@ -715,15 +714,15 @@ function calculateSalesData(store, month) {
         if (!v || v.toString().trim() === '') return;
 
         isMonthStarted = true;
-        mtdCURRENT_YEAR += parseFloat(v.toString().replace(/[^0-9.-]+/g, '') || 0);
-        if (!lastCURRENT_YEAR || d > lastCURRENT_YEAR) lastCURRENT_YEAR = d;
+        mtdCurrentYear += parseFloat(v.toString().replace(/[^0-9.-]+/g, '') || 0);
+        if (!lastCurrentYear || d > lastCurrentYear) lastCurrentYear = d;
     });
 
     // Allow future months in CURRENT_YEAR to show target
     if (!isMonthStarted && monthIndex >= CURRENT_DATE.getMonth() && CURRENT_DATE.getFullYear() === CURRENT_YEAR) {
         isMonthStarted = true;
-        mtdCURRENT_YEAR = 0;
-        lastCURRENT_YEAR = null; // no data → first day of month
+        mtdCurrentYear = 0;
+        lastCurrentYear = null; // no data → first day of month
     }
 
     if (!isMonthStarted) {
@@ -746,15 +745,15 @@ function calculateSalesData(store, month) {
         }, 0);
 
         const growthAmount = growthTarget * 1000;
-let romTarget = growthType === 'percent' ? romLAST_YEAR * (1 + growthTarget / 100) : romLAST_YEAR + growthAmount;
+let romTarget = growthType === 'percent' ? romLastYear * (1 + growthTarget / 100) : romLastYear + growthAmount;
         return {
-            mtdLAST_YEAR: 0, mtdCURRENT_YEAR: 0, mtdTarget: 0,
-            romLAST_YEAR: Math.round(fullLAST_YEAR), romCURRENT_YEAR: 0, romTarget: Math.round(romTarget)
+            mtdLastYear: 0, mtdCurrentYear: 0, mtdTarget: 0,
+            romLastYear: Math.round(fullLAST_YEAR), romCurrentYear: 0, romTarget: Math.round(romTarget)
         };
     }
 
-    if (monthEnded && lastCURRENT_YEAR && lastCURRENT_YEAR >= lastDayCURRENT_YEAR) {
-        const mtdLAST_YEAR = netsalesData.reduce((s, r) => {
+    if (monthEnded && lastCurrentYear && lastCurrentYear >= lastDayCURRENT_YEAR) {
+        const mtdLastYear = netsalesData.reduce((s, r) => {
             const d = new Date(r[2]);
             if (d.getFullYear() !== LAST_YEAR || d.toLocaleString('en-US',{month:'long'}) !== month) return s;
             const day = d.getDate();
@@ -774,30 +773,30 @@ let romTarget = growthType === 'percent' ? romLAST_YEAR * (1 + growthTarget / 10
 
         let mtdTarget;
         if (growthType === 'percent') {
-            mtdTarget = mtdLAST_YEAR * (1 + growthTarget / 100);
+            mtdTarget = mtdLastYear * (1 + growthTarget / 100);
         } else {
             const growthAmount = growthTarget * 1000;
-            mtdTarget = mtdLAST_YEAR + growthAmount;
+            mtdTarget = mtdLastYear + growthAmount;
         }
 
         return {
-            mtdLAST_YEAR: Math.round(mtdLAST_YEAR),
-            mtdCURRENT_YEAR: Math.round(mtdCURRENT_YEAR),
+            mtdLastYear: Math.round(mtdLastYear),
+            mtdCurrentYear: Math.round(mtdCurrentYear),
             mtdTarget: Math.round(mtdTarget),
-            romLAST_YEAR: 0, romCURRENT_YEAR: 0, romTarget: 0
+            romLastYear: 0, romCurrentYear: 0, romTarget: 0
         };
     }
 
-    const elapsedDays = lastCURRENT_YEAR ? lastCURRENT_YEAR.getDate() : 0;
+    const elapsedDays = lastCurrentYear ? lastCurrentYear.getDate() : 0;
 
-    mtdCURRENT_YEAR = netsalesData.reduce((s, r) => {
+    mtdCurrentYear = netsalesData.reduce((s, r) => {
         const d = new Date(r[2]);
-        if (d.getFullYear() !== CURRENT_YEAR || d > lastCURRENT_YEAR || d.toLocaleString('en-US',{month:'long'}) !== month) return s;
+        if (d.getFullYear() !== CURRENT_YEAR || d > lastCurrentYear || d.toLocaleString('en-US',{month:'long'}) !== month) return s;
         const v = r[idx];
         return s + (v && v.toString().trim() !== '' ? parseFloat(v.toString().replace(/[^0-9.-]+/g, '') || 0) : 0);
     }, 0);
 
-    const mtdLAST_YEAR = netsalesData.reduce((s, r) => {
+    const mtdLastYear = netsalesData.reduce((s, r) => {
         const d = new Date(r[2]);
         if (d.getFullYear() !== LAST_YEAR || d.toLocaleString('en-US',{month:'long'}) !== month) return s;
         const day = d.getDate();
@@ -806,7 +805,7 @@ let romTarget = growthType === 'percent' ? romLAST_YEAR * (1 + growthTarget / 10
         return s + (v && v.toString().trim() !== '' ? parseFloat(v.toString().replace(/[^0-9.-]+/g, '') || 0) : 0);
     }, 0);
 
-    const romLAST_YEAR = netsalesData.reduce((s, r) => {
+    const romLastYear = netsalesData.reduce((s, r) => {
         const d = new Date(r[2]);
         if (d.getFullYear() !== LAST_YEAR) return s;
         const rowMonth = d.toLocaleString('en-US', { month: 'long' });
@@ -828,13 +827,13 @@ let romTarget = growthType === 'percent' ? romLAST_YEAR * (1 + growthTarget / 10
     }, 0);
 
     let mtdTarget, romTarget;
-    const totalLAST_YEAR = mtdLAST_YEAR + romLAST_YEAR;
+    const totalLAST_YEAR = mtdLastYear + romLastYear;
     const growthAmount = growthTarget * 1000;
 
     if (growthType === 'percent') {
         const factor = 1 + growthTarget / 100;
-        mtdTarget = mtdLAST_YEAR * factor;
-        romTarget = romLAST_YEAR * factor;
+        mtdTarget = mtdLastYear * factor;
+        romTarget = romLastYear * factor;
         } else {
         const growthAmount = growthTarget * 1000;
 
@@ -899,24 +898,24 @@ let romTarget = growthType === 'percent' ? romLAST_YEAR * (1 + growthTarget / 10
         const mtdShare = totalExpected > 0 ? mtdExpected / totalExpected : 0;
         const romShare = totalExpected > 0 ? romExpected / totalExpected : 0;
 
-        mtdTarget = Math.round(mtdLAST_YEAR + growthAmount * mtdShare);
-        romTarget = Math.round(romLAST_YEAR + growthAmount * romShare);
+        mtdTarget = Math.round(mtdLastYear + growthAmount * mtdShare);
+        romTarget = Math.round(romLastYear + growthAmount * romShare);
     }
 
     mtdTarget = Math.round(mtdTarget);
     romTarget = Math.round(romTarget);
 
-    const romCURRENT_YEAR = mtdLAST_YEAR > 0 ? romLAST_YEAR * (mtdCURRENT_YEAR / mtdLAST_YEAR) : 0;
+    const romCurrentYear = mtdLastYear > 0 ? romLastYear * (mtdCurrentYear / mtdLastYear) : 0;
 
     return {
-        mtdLAST_YEAR: Math.round(mtdLAST_YEAR),
-        mtdCURRENT_YEAR: Math.round(mtdCURRENT_YEAR),
+        mtdLastYear: Math.round(mtdLastYear),
+        mtdCurrentYear: Math.round(mtdCurrentYear),
         mtdTarget: mtdTarget,
-        romLAST_YEAR: Math.round(romLAST_YEAR),
-        romCURRENT_YEAR: Math.round(romCURRENT_YEAR),
+        romLastYear: Math.round(romLastYear),
+        romCurrentYear: Math.round(romCurrentYear),
         romTarget: romTarget,
         elapsedDays: elapsedDays,
-        lastCURRENT_YEAR: lastCURRENT_YEAR  // ADD THIS
+        lastCurrentYear: lastCurrentYear  // ADD THIS
     };
 }
 
@@ -1020,14 +1019,14 @@ case 'forecast-h2':
     datasets = [
         {
             label: 'MTD ($)',
-            data: [forecastData.mtdLAST_YEAR, forecastData.mtdTarget, forecastData.mtdCURRENT_YEAR],
+            data: [forecastData.mtdLastYear, forecastData.mtdTarget, forecastData.mtdCurrentYear],
             backgroundColor: 'rgba(54, 162, 235, 0.8)',
             borderColor: 'rgba(54, 162, 235, 1)',
             borderWidth: 1
         },
         {
             label: 'ROM ($)',
-            data: [forecastData.romLAST_YEAR, forecastData.romTarget, forecastData.romCURRENT_YEAR],
+            data: [forecastData.romLastYear, forecastData.romTarget, forecastData.romCurrentYear],
             backgroundColor: 'rgba(255, 159, 64, 0.8)',
             borderColor: 'rgba(255, 159, 64, 1)',
             borderWidth: 1
@@ -1039,7 +1038,7 @@ case 'forecast-h2':
             // Bar chart: Scenario ROM values
             const scenarioData = calculateSalesData(store, month);
             
-            const mtdGrowthPct = scenarioData.mtdLAST_YEAR > 0 ? ((scenarioData.mtdCURRENT_YEAR / scenarioData.mtdLAST_YEAR) - 1) * 100 : 0;
+            const mtdGrowthPct = scenarioData.mtdLastYear > 0 ? ((scenarioData.mtdCurrentYear / scenarioData.mtdLastYear) - 1) * 100 : 0;
             labels = [
                 `${month} LAST_YEAR Repeats`,
                 `${month} at ${growthTarget}${growthType === 'dollar' ? 'K' : '%'} Growth`,
@@ -1047,7 +1046,7 @@ case 'forecast-h2':
             ];
             datasets = [{
                 label: 'ROM ($)',
-                data: [scenarioData.romLAST_YEAR, scenarioData.romTarget, scenarioData.romCURRENT_YEAR],
+                data: [scenarioData.romLastYear, scenarioData.romTarget, scenarioData.romCurrentYear],
                 backgroundColor: 'rgba(75, 192, 192, 0.5)',
                 borderColor: 'rgba(75, 192, 192, 1)',
                 borderWidth: 1
@@ -1459,8 +1458,8 @@ function updateSummaryTable(store, month) {
     const isPastMonth = now > monthEnd;
 
     // === Calculate growth values (needed for both paths) ===
-    const mtdGrowth$ = data.mtdCURRENT_YEAR - data.mtdLAST_YEAR;
-    const mtdGrowthPct = data.mtdLAST_YEAR > 0 ? ((data.mtdCURRENT_YEAR / data.mtdLAST_YEAR) - 1) * 100 : 0;
+    const mtdGrowth$ = data.mtdCurrentYear - data.mtdLastYear;
+    const mtdGrowthPct = data.mtdLastYear > 0 ? ((data.mtdCurrentYear / data.mtdLastYear) - 1) * 100 : 0;
 
     if (isPastMonth) {
         const rows = [
@@ -1476,8 +1475,7 @@ function updateSummaryTable(store, month) {
                     ${formatPercent(mtdGrowthPct)}, 
                     ${formatNumber(mtdGrowth$)}
                 </span>`,
-                `$${data.mtdLAST_YEAR.toLocaleString()}<sub><small>LAST_YEAR</small></sub> → $${data.mtdCURRENT_YEAR.toLocaleString()}<sub><small>CURRENT_YEAR</small></sub>`
-            ]
+`$${data.mtdLastYear.toLocaleString()}<sub><small>${LAST_YEAR}</small></sub> → $${data.mtdCurrentYear.toLocaleString()}<sub><small>${CURRENT_YEAR}</small></sub>`            ]
         ];
 
       rows.forEach(([metric, value, source]) => {
@@ -1535,11 +1533,11 @@ function updateSummaryTable(store, month) {
     }
 
     const overallTarget = data.mtdTarget + data.romTarget;
-    const remaining$ = overallTarget - data.mtdCURRENT_YEAR;
-    const growthNeededPct = data.romLAST_YEAR > 0 ? ((remaining$ / data.romLAST_YEAR) - 1) * 100 : 0;
+    const remaining$ = overallTarget - data.mtdCurrentYear;
+    const growthNeededPct = data.romLastYear > 0 ? ((remaining$ / data.romLastYear) - 1) * 100 : 0;
 
     const growthAmount = growthType === 'percent' 
-        ? (data.mtdLAST_YEAR + data.romLAST_YEAR) * (growthTarget / 100) 
+        ? (data.mtdLastYear + data.romLastYear) * (growthTarget / 100) 
         : growthTarget * 1000;
 
     const nextDayTarget = getNextDayTargetedNetSales(store, month, remaining$, netsalesData, firstBlankDay);
@@ -1906,8 +1904,8 @@ if (rowKey === 'remaining-target') {
     const month = document.getElementById('month-filter').value || '';
     const data = calculateSalesData(store, month);
     const overallTarget = data.mtdTarget + data.romTarget;
-    const remainingToTarget = overallTarget - data.mtdCURRENT_YEAR;
-    const totalLAST_YEAR = data.mtdLAST_YEAR + data.romLAST_YEAR;
+    const remainingToTarget = overallTarget - data.mtdCurrentYear;
+    const totalLAST_YEAR = data.mtdLastYear + data.romLastYear;
     const labels = ['LAST_YEAR Full Month', 'CURRENT_YEAR MTD', 'Remaining to Target', 'CURRENT_YEAR Target'];
     const remainingColor = remainingToTarget > 0 ? 'rgba(255, 206, 86, 0.8)' : (remainingToTarget < 0 ? 'rgba(255, 99, 132, 0.8)' : 'rgba(150, 150, 150, 0.8)');
     const datasets = [
@@ -1918,12 +1916,12 @@ if (rowKey === 'remaining-target') {
         },
         {
             label: 'CURRENT_YEAR MTD',
-            data: [null, data.mtdCURRENT_YEAR, null, null],
+            data: [null, data.mtdCurrentYear, null, null],
             backgroundColor: 'rgba(75, 192, 192, 0.8)'
         },
         {
             label: 'Remaining to Target',
-            data: [null, null, remainingToTarget !== 0 ? [data.mtdCURRENT_YEAR, overallTarget] : null, null],
+            data: [null, null, remainingToTarget !== 0 ? [data.mtdCurrentYear, overallTarget] : null, null],
             backgroundColor: remainingColor
         },
         {
